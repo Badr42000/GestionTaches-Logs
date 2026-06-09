@@ -39,7 +39,15 @@
 <body>
     <div class="header">
         <h1>Gestion de Tâches</h1>
-        <a href="/create" class="btn btn-primary">+ Nouvelle tâche</a>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <?php if (!empty($_SESSION['user'])): ?>
+                <span style="font-size:14px;color:#868e96;"><?= htmlspecialchars($_SESSION['user']['username'], ENT_QUOTES, 'UTF-8') ?></span>
+                <?php if (!isset($hideCreate)): ?>
+                    <a href="/create" class="btn btn-primary">+ Nouvelle tâche</a>
+                <?php endif; ?>
+                <a href="/logout" class="btn">Déconnexion</a>
+            <?php endif; ?>
+        </div>
     </div>
 
     <?php if (isset($error)): ?>

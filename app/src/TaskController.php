@@ -31,6 +31,7 @@ class TaskController
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $priority = $_POST['priority'] ?? 'moyenne';
+        $username = $_SESSION['user']['username'] ?? 'unknown';
 
         if ($title === '') {
             $this->render('form', [
@@ -41,9 +42,9 @@ class TaskController
         }
 
         $stmt = $this->pdo->prepare(
-            'INSERT INTO tasks (title, description, priority) VALUES (?, ?, ?)'
+            'INSERT INTO tasks (title, description, priority, created_by) VALUES (?, ?, ?, ?)'
         );
-        $stmt->execute([$title, $description, $priority]);
+        $stmt->execute([$title, $description, $priority, $username]);
         $id = (int)$this->pdo->lastInsertId();
 
         $this->logger->send('info', 'tasklogger', json_encode([
@@ -52,6 +53,7 @@ class TaskController
             'title' => $title,
             'priority' => $priority,
             'status' => 'todo',
+            'username' => $username,
         ]));
 
         header('Location: /');
@@ -70,6 +72,7 @@ class TaskController
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $priority = $_POST['priority'] ?? 'moyenne';
+        $username = $_SESSION['user']['username'] ?? 'unknown';
 
         if ($title === '') {
             $this->render('form', [
@@ -89,6 +92,7 @@ class TaskController
             'id' => $id,
             'title' => $title,
             'priority' => $priority,
+            'username' => $username,
         ]));
 
         header('Location: /');
@@ -98,6 +102,7 @@ class TaskController
     public function handleDelete(int $id): void
     {
         $task = $this->findTaskOr404($id);
+        $username = $_SESSION['user']['username'] ?? 'unknown';
 
         $stmt = $this->pdo->prepare('DELETE FROM tasks WHERE id = ?');
         $stmt->execute([$id]);
@@ -106,6 +111,7 @@ class TaskController
             'action' => 'TASK_DELETED',
             'id' => $id,
             'title' => $task['title'],
+            'username' => $username,
         ]));
 
         header('Location: /');
@@ -116,6 +122,7 @@ class TaskController
     {
         $task = $this->findTaskOr404($id);
         $newStatus = $_POST['status'] ?? '';
+        $username = $_SESSION['user']['username'] ?? 'unknown';
 
         $validStatuses = ['todo', 'in_progress', 'done'];
         if (!in_array($newStatus, $validStatuses, true)) {
@@ -132,6 +139,7 @@ class TaskController
             'field' => 'status',
             'old_value' => $task['status'],
             'new_value' => $newStatus,
+            'username' => $username,
         ]));
 
         header('Location: /');
