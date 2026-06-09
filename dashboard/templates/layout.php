@@ -19,6 +19,19 @@
         header { margin-bottom: 32px; }
         header h1 { font-size: 28px; font-weight: 700; color: #f0f6fc; letter-spacing: -0.5px; }
         header p { color: #8b949e; margin-top: 4px; font-size: 14px; }
+        .nav-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid #30363d; }
+        .nav-tabs a {
+            padding: 10px 20px;
+            text-decoration: none;
+            color: #8b949e;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all .15s;
+        }
+        .nav-tabs a:hover { color: #e1e4e8; }
+        .nav-tabs a.active { color: #f0f6fc; border-bottom-color: #58a6ff; }
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
         .stat-card {
             background: #161b22;
@@ -107,6 +120,24 @@
             font-size: 11px; font-weight: 600;
             padding: 1px 8px; border-radius: 10px; min-width: 20px;
         }
+        .task-table { width: 100%; border-collapse: collapse; }
+        .task-table th, .task-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #30363d; }
+        .task-table th { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .task-table tr:hover td { background: #1c2128; }
+        .priority-haute { color: #f85149; font-weight: 600; }
+        .priority-moyenne { color: #d29922; font-weight: 600; }
+        .priority-basse { color: #8b949e; font-weight: 600; }
+        .status-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;
+        }
+        .status-badge.todo { background: rgba(210,153,34,.15); color: #d29922; }
+        .status-badge.in_progress { background: rgba(88,166,255,.15); color: #58a6ff; }
+        .status-badge.done { background: rgba(63,185,80,.15); color: #3fb950; }
+        .priority-indicator { display: inline-flex; align-items: center; gap: 6px; }
+        .priority-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .priority-dot.haute { background: #f85149; }
+        .priority-dot.moyenne { background: #d29922; }
+        .priority-dot.basse { background: #6e7681; }
         @media (max-width: 640px) {
             .container { padding: 16px; }
             .stats { grid-template-columns: 1fr 1fr; }
@@ -121,72 +152,12 @@
             <p>Suivi des actions réalisées sur la gestion de tâches</p>
         </header>
 
-        <div class="stats">
-            <div class="stat-card">
-                <div class="label">Total</div>
-                <div class="value"><?= $stats['total'] ?></div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Créations</div>
-                <div class="value created"><?= $stats['actions']['TASK_CREATED'] ?></div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Modifications</div>
-                <div class="value updated"><?= $stats['actions']['TASK_UPDATED'] ?></div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Suppressions</div>
-                <div class="value deleted"><?= $stats['actions']['TASK_DELETED'] ?></div>
-            </div>
+        <div class="nav-tabs">
+            <a href="/" class="<?= $view === 'logs' ? 'active' : '' ?>">Logs</a>
+            <a href="/tasks" class="<?= $view === 'tasks' ? 'active' : '' ?>">Tâches</a>
         </div>
 
-        <div class="filters">
-            <a href="/" class="filter-btn <?= $current_filter === '' ? 'active' : '' ?>">Tous</a>
-            <a href="/?action=TASK_CREATED" class="filter-btn <?= $current_filter === 'TASK_CREATED' ? 'active' : '' ?>">Créations</a>
-            <a href="/?action=TASK_UPDATED" class="filter-btn <?= $current_filter === 'TASK_UPDATED' ? 'active' : '' ?>">Modifications</a>
-            <a href="/?action=TASK_DELETED" class="filter-btn danger <?= $current_filter === 'TASK_DELETED' ? 'active' : '' ?>">Suppressions</a>
-        </div>
-
-        <div class="refresh-bar">
-            <span class="count"><?= count($logs) ?> événement(s) affiché(s)</span>
-        </div>
-
-        <?php if (empty($logs)): ?>
-            <div class="empty-state">
-                <p>Aucun log pour le moment.<br>Effectuez des actions sur la <a href="http://localhost:8081" style="color:#58a6ff">gestion de tâches</a>.</p>
-            </div>
-        <?php else: ?>
-            <div class="logs">
-                <?php foreach ($logs as $log):
-                    $data = json_decode($log['Message'], true);
-                    $action = $data['action'] ?? 'unknown';
-                    $severity = $this->severityLabel((int)$log['Priority']);
-                    $actionKey = strtolower(str_replace('TASK_', '', $action));
-                ?>
-                <div class="log-entry">
-                    <div class="log-icon <?= $actionKey ?>">
-                        <?= match ($action) {
-                            'TASK_CREATED' => '+',
-                            'TASK_UPDATED' => '~',
-                            'TASK_DELETED' => '×',
-                            default => '?',
-                        } ?>
-                    </div>
-                    <div class="log-body">
-                        <div class="log-header">
-                            <span class="log-action <?= $actionKey ?>"><?= $this->actionLabel($action) ?></span>
-                            <span class="log-time"><?= htmlspecialchars($log['ReceivedAt'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
-                        </div>
-                        <div class="log-message"><?= $this->humanize($data) ?></div>
-                        <div class="log-meta">
-                            <span class="log-severity <?= $severity ?>"><?= $severity ?></span>
-                            <span>ID système : <?= (int)$log['ID'] ?></span>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
+        <?php require __DIR__ . '/' . $template . '.php'; ?>
 
         <div class="footer">
             Gestion de Tâches — Projet scolaire

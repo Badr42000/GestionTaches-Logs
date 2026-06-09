@@ -11,6 +11,7 @@
                     <th>Titre</th>
                     <th>Priorité</th>
                     <th>Statut</th>
+                    <th>Auteur</th>
                     <th>Créée le</th>
                     <th>Actions</th>
                 </tr>
@@ -21,6 +22,7 @@
                     <td><?= htmlspecialchars($task['title'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge badge-<?= $task['priority'] ?>"><?= htmlspecialchars($task['priority'], ENT_QUOTES, 'UTF-8') ?></span></td>
                     <td><span class="badge badge-<?= $task['status'] ?>"><?= htmlspecialchars($task['status'], ENT_QUOTES, 'UTF-8') ?></span></td>
+                    <td><?= htmlspecialchars($task['created_by'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars($task['created_at'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td>
                         <div class="actions">
