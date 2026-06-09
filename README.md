@@ -30,7 +30,12 @@ Projet scolaire — Application de gestion de tâches avec journalisation syslog
 docker compose up -d
 ```
 
-Ouvrir [http://localhost:8080](http://localhost:8080)
+Ouvrir [http://localhost:8081](http://localhost:8081)
+
+Accès via IPv6 :
+```
+http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8081
+```
 
 Arrêt :
 ```bash
@@ -85,6 +90,16 @@ GestionDeTâches/
 └── README.md
 ```
 
+## Ports
+
+| Service | Port hôte | Port conteneur |
+|---|---|---|
+| TaskLogger | `8081` | 8080 |
+| Dashboard (à venir) | `8080` | — |
+| Rsyslog (UDP) | `514` | 514 |
+| MySQL | `3306` | 3306 |
+
 ## Dashboard (à venir)
 
-Le Dashboard lira la table `SystemEvents` en base pour visualiser les logs.
+Le Dashboard lira la table `SystemEvents` en base pour visualiser les logs.  
+Il sera accessible sur [http://localhost:8080](http://localhost:8080).
