@@ -4,18 +4,28 @@ Projet scolaire — Application de gestion de tâches avec journalisation syslog
 
 ## Architecture
 
-3 conteneurs Docker :
+4 conteneurs Docker :
 
 ```
-┌─────────┐   UDP 514   ┌──────────┐     ┌─────────┐
-│   web   │ ──────────► │ rsyslog  │ ──► │  mysql  │
-│  PHP 8  │             │ ommysql  │     │         │
-│ CLI SVR │             │          │     │  tasks  │
-└─────────┘             └──────────┘     │SystemEv.│
-                                         └─────────┘
+┌──────────┐
+│   web    │ ───┐
+│ PHP 8.2  │    │ UDP 514
+│ TaskLogr │    │
+└──────────┘    ▼
+           ┌──────────┐     ┌─────────┐
+           │ rsyslog  │ ──► │  mysql  │
+           │ ommysql  │     │         │
+           └──────────┘     │  tasks  │
+                            │SystemEv.│
+           ┌──────────┐     └─────────┘
+           │dashboard │        ▲
+           │ PHP 8.2  │────────┘
+           │ visual.  │    PDO
+           └──────────┘
 ```
 
-- **web** : PHP 8.2 CLI + serveur intégré (`php -S`) — interface de gestion des tâches
+- **web** : PHP 8.2 — interface de gestion des tâches (port 8081)
+- **dashboard** : PHP 8.2 — visualisation des logs (port 8080)
 - **rsyslog** : rsyslogd avec module `ommysql` — collecte les logs UDP et les insère en MySQL
 - **mysql** : MySQL 8 — stocke les tâches (`tasks`) et les logs (`SystemEvents`)
 
@@ -70,23 +80,19 @@ GestionDeTâches/
 ├── docker-compose.yml
 ├── docker/
 │   ├── web/Dockerfile
+│   ├── dashboard/Dockerfile
 │   └── rsyslog/
 │       ├── Dockerfile
 │       └── rsyslog.conf
 ├── sql/init.sql
 ├── app/
-│   ├── public/
-│   │   ├── router.php
-│   │   └── index.php
-│   ├── src/
-│   │   ├── autoload.php
-│   │   ├── Database.php
-│   │   ├── Logger.php
-│   │   └── TaskController.php
-│   └── templates/
-│       ├── layout.php
-│       ├── list.php
-│       └── form.php
+│   ├── public/ (index.php, router.php)
+│   ├── src/ (Database, Logger, TaskController)
+│   └── templates/ (layout, list, form)
+├── dashboard/
+│   ├── public/ (index.php, router.php)
+│   ├── src/ (Database, DashboardController)
+│   └── templates/ (layout)
 └── README.md
 ```
 
@@ -95,11 +101,20 @@ GestionDeTâches/
 | Service | Port hôte | Port conteneur |
 |---|---|---|
 | TaskLogger | `8081` | 8080 |
-| Dashboard (à venir) | `8080` | — |
+| Dashboard | `8080` | 8080 |
 | Rsyslog (UDP) | `514` | 514 |
 | MySQL | `3306` | 3306 |
 
-## Dashboard (à venir)
+## Dashboard
 
-Le Dashboard lira la table `SystemEvents` en base pour visualiser les logs.  
-Il sera accessible sur [http://localhost:8080](http://localhost:8080).
+Le Dashboard lit la table `SystemEvents` et affiche les logs avec :
+- Statistiques en temps réel (total, créations, modifications, suppressions)
+- Filtres par type d'action
+- Messages humanisés à partir du JSON
+- Code couleur par sévérité (info, warning, erreur)
+- Design dark mode
+
+Accessible sur [http://localhost:8080](http://localhost:8080) ou en IPv6 :
+```
+http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8080
+```
