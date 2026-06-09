@@ -56,6 +56,21 @@ class DashboardController
             'logs' => $logs,
             'stats' => $stats,
             'current_filter' => $filter,
+            'view' => 'logs',
+        ]);
+    }
+
+    public function handleTasks(): void
+    {
+        $stmt = $this->pdo->query(
+            "SELECT * FROM tasks
+             ORDER BY FIELD(priority, 'haute', 'moyenne', 'basse'), created_at DESC"
+        );
+        $tasks = $stmt->fetchAll();
+
+        $this->render('tasks', [
+            'tasks' => $tasks,
+            'view' => 'tasks',
         ]);
     }
 
@@ -85,24 +100,28 @@ class DashboardController
 
         return match ($action) {
             'TASK_CREATED' => sprintf(
-                'Tâche <strong>%s</strong> créée (priorité : %s)',
+                'Tâche <strong>%s</strong> créée (priorité : %s) par <strong>%s</strong>',
                 htmlspecialchars($data['title'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['priority'] ?? '', ENT_QUOTES, 'UTF-8')
+                htmlspecialchars($data['priority'] ?? '', ENT_QUOTES, 'UTF-8'),
+                htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8')
             ),
             'TASK_UPDATED' => !empty($data['field'])
                 ? sprintf(
-                    'Tâche #%d : <strong>%s</strong> → <strong>%s</strong>',
+                    'Tâche #%d : <strong>%s</strong> → <strong>%s</strong> par <strong>%s</strong>',
                     (int)($data['id'] ?? 0),
                     htmlspecialchars($data['old_value'] ?? '', ENT_QUOTES, 'UTF-8'),
-                    htmlspecialchars($data['new_value'] ?? '', ENT_QUOTES, 'UTF-8')
+                    htmlspecialchars($data['new_value'] ?? '', ENT_QUOTES, 'UTF-8'),
+                    htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8')
                 )
                 : sprintf(
-                    'Tâche <strong>%s</strong> modifiée',
-                    htmlspecialchars($data['title'] ?? '', ENT_QUOTES, 'UTF-8')
+                    'Tâche <strong>%s</strong> modifiée par <strong>%s</strong>',
+                    htmlspecialchars($data['title'] ?? '', ENT_QUOTES, 'UTF-8'),
+                    htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8')
                 ),
             'TASK_DELETED' => sprintf(
-                'Tâche <strong>%s</strong> supprimée',
-                htmlspecialchars($data['title'] ?? '', ENT_QUOTES, 'UTF-8')
+                'Tâche <strong>%s</strong> supprimée par <strong>%s</strong>',
+                htmlspecialchars($data['title'] ?? '', ENT_QUOTES, 'UTF-8'),
+                htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8')
             ),
             default => htmlspecialchars(json_encode($data), ENT_QUOTES, 'UTF-8'),
         };
