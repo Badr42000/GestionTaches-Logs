@@ -16,6 +16,10 @@ if ($uri === '/login' && $method === 'GET') {
     $auth->handleLoginForm();
 } elseif ($uri === '/login' && $method === 'POST') {
     $auth->handleLogin();
+} elseif ($uri === '/register' && $method === 'GET') {
+    $auth->handleRegisterForm();
+} elseif ($uri === '/register' && $method === 'POST') {
+    $auth->handleRegister();
 } elseif ($uri === '/logout') {
     $auth->handleLogout();
 } else {
