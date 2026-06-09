@@ -1,6 +1,9 @@
 FROM debian:bookworm-slim
 
-RUN apt-get update && apt-get install -y \
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN echo 'rsyslog-mysql rsyslog-mysql/dbconfig-install boolean false' | debconf-set-selections && \
+    apt-get update && apt-get install -y \
     rsyslog \
     rsyslog-mysql \
     && rm -rf /var/lib/apt/lists/*
