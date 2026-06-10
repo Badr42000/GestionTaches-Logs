@@ -4,10 +4,23 @@ session_start();
 
 require_once __DIR__ . '/../src/autoload.php';
 
+set_exception_handler(function (Throwable $e) {
+    $logger = new Logger();
+    $logger->send('err', 'tasklogger', json_encode([
+        'action' => 'ERROR_UNHANDLED',
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+    ]));
+    http_response_code(500);
+    echo 'Une erreur interne est survenue.';
+    exit;
+});
+
 $db = Database::getInstance();
 $logger = new Logger();
 $controller = new TaskController($db, $logger);
-$auth = new AuthController($db);
+$auth = new AuthController($db, $logger);
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];

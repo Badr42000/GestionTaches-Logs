@@ -24,6 +24,12 @@ class Database
                     ]
                 );
             } catch (PDOException $e) {
+                $logger = new Logger();
+                $logger->send('err', 'tasklogger', json_encode([
+                    'action' => 'ERROR_DATABASE',
+                    'message' => 'Impossible de se connecter à la base de données',
+                    'error' => $e->getMessage(),
+                ]));
                 http_response_code(500);
                 echo 'Erreur de connexion à la base de données.';
                 exit;

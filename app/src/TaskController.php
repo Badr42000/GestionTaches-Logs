@@ -13,8 +13,16 @@ class TaskController
 
     public function handleList(): void
     {
+        $username = $_SESSION['user']['username'] ?? 'unknown';
+
         $stmt = $this->pdo->query('SELECT * FROM tasks ORDER BY created_at DESC');
         $tasks = $stmt->fetchAll();
+
+        $this->logger->send('info', 'tasklogger', json_encode([
+            'action' => 'TASK_LISTED',
+            'username' => $username,
+            'count' => count($tasks),
+        ]));
 
         $this->render('list', ['tasks' => $tasks]);
     }
@@ -62,7 +70,15 @@ class TaskController
 
     public function handleEditForm(int $id): void
     {
+        $username = $_SESSION['user']['username'] ?? 'unknown';
         $task = $this->findTaskOr404($id);
+
+        $this->logger->send('info', 'tasklogger', json_encode([
+            'action' => 'TASK_VIEWED',
+            'id' => $id,
+            'title' => $task['title'],
+            'username' => $username,
+        ]));
 
         $this->render('form', ['task' => $task]);
     }
@@ -134,9 +150,9 @@ class TaskController
         $stmt->execute([$newStatus, $id]);
 
         $this->logger->send('info', 'tasklogger', json_encode([
-            'action' => 'TASK_UPDATED',
+            'action' => 'TASK_STATUS_CHANGED',
             'id' => $id,
-            'field' => 'status',
+            'title' => $task['title'],
             'old_value' => $task['status'],
             'new_value' => $newStatus,
             'username' => $username,
@@ -148,11 +164,19 @@ class TaskController
 
     private function findTaskOr404(int $id): array
     {
+        $username = $_SESSION['user']['username'] ?? 'unknown';
+
         $stmt = $this->pdo->prepare('SELECT * FROM tasks WHERE id = ?');
         $stmt->execute([$id]);
         $task = $stmt->fetch();
 
         if (!$task) {
+            $this->logger->send('warning', 'tasklogger', json_encode([
+                'action' => 'SECURITY_RESOURCE_NOT_FOUND',
+                'type' => 'task',
+                'id' => $id,
+                'username' => $username,
+            ]));
             http_response_code(404);
             echo 'Tâche introuvable.';
             exit;

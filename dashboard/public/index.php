@@ -2,6 +2,12 @@
 
 require_once __DIR__ . '/../src/autoload.php';
 
+set_exception_handler(function (Throwable $e) {
+    http_response_code(500);
+    echo 'Une erreur interne est survenue.';
+    exit;
+});
+
 $db = Database::getInstance();
 $controller = new DashboardController($db);
 
