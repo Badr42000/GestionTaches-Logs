@@ -65,3 +65,18 @@
 - Les corrections ont aussi leur prompt dédié
 - Note d'introduction expliquant le format
 - Création de `conversation3.md` pour cette session
+
+---
+
+## Prompt 5 — Correction dashboard (500 Internal Server Error)
+
+> Suite à la refactorisation, le dashboard affiche « Une erreur interne est survenue ». Les statistiques s'affichent mais les logs individuels non. Que se passe-t-il ?
+
+**Résultat :** La méthode `severityLabel()` appelée dans le template `logs.php` via `$this->severityLabel()` était absente du nouveau `DashboardController` refactorisé. J'avais oublié de copier les 5 méthodes utilitaires dans la nouvelle classe :
+- `humanize()` — formate les messages JSON en texte lisible
+- `severityLabel()` — convertit le niveau syslog en label
+- `actionLabel()` — convertit l'action en libellé français
+- `actionIcon()` — associe une icône à l'action
+- `actionCategory()` — détermine la catégorie d'une action
+
+**Solution :** Ajout des 5 méthodes manquantes dans `dashboard/src/Controller/DashboardController.php`.
