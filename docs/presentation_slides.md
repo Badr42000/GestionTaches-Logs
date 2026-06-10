@@ -101,6 +101,42 @@ Mon entreprise possède déjà l'application **GestionDeTâches** (PHP)
 
 ---
 
+## Fonctions principales
+
+<div class="columns">
+<div>
+
+### GestionDeTâches (8081)
+
+| Fonction | Log |
+|----------|:---:|
+| Inscription | ✅ |
+| Connexion / Déconnexion | ✅ |
+| Créer une tâche | ✅ |
+| Modifier une tâche | ✅ |
+| Supprimer une tâche | ✅ |
+| Changer le statut | ✅ |
+| Consulter une tâche | ✅ |
+| Lister les tâches | ✅ |
+
+</div>
+<div>
+
+### Dashboard (8080)
+
+| Fonction | Détail |
+|----------|--------|
+| Affichage logs | Temps réel |
+| Filtre par catégorie | 4 catégories |
+| Filtre par action | 16 types |
+| Statistiques | Totaux par catégorie |
+| Vue tâches | Liste + statuts |
+
+</div>
+</div>
+
+---
+
 ## Événements journalisés
 
 | Catégorie | Événements |
