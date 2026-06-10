@@ -1,0 +1,42 @@
+@startuml
+left to right direction
+actor Utilisateur as U
+actor Superviseur as S
+
+rectangle "GestionDeTâches" {
+  usecase "UC1\nS'inscrire" as UC1
+  usecase "UC2\nSe connecter" as UC2
+  usecase "UC3\nSe déconnecter" as UC3
+  usecase "UC4\nCréer une tâche" as UC4
+  usecase "UC5\nModifier une tâche" as UC5
+  usecase "UC6\nSupprimer une tâche" as UC6
+  usecase "UC7\nChanger le statut" as UC7
+  usecase "UC8\nLister les tâches" as UC8
+  usecase "UC9\nConsulter une tâche" as UC9
+}
+
+rectangle "Dashboard" {
+  usecase "UC10\nConsulter les logs" as UC10
+  usecase "UC11\nFiltrer les logs" as UC11
+  usecase "UC12\nVoir les stats" as UC12
+  usecase "UC13\nConsulter les\ntâches" as UC13
+}
+
+U --> UC1
+U --> UC2
+U --> UC3
+U --> UC4
+U --> UC5
+U --> UC6
+U --> UC7
+U --> UC8
+U --> UC9
+
+UC2 ..> UC1 : <<include>>
+UC5 ..> UC4 : <<extend>>
+
+S --> UC10
+S --> UC13
+UC10 ..> UC11 : <<include>>
+UC10 ..> UC12 : <<include>>
+@enduml

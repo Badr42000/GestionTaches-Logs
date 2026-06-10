@@ -125,6 +125,64 @@ Interface de monitoring avec :
 
 ---
 
+## Tâches détaillées par livrable
+
+| Livrable | Tâche | Effort estimé | Livré en |
+|----------|-------|:-------------:|:--------:|
+| **Infrastructure Docker** | Créer docker-compose.yml (web, rsyslog, mysql) | 2h | Phase 1 |
+| | Configurer rsyslog (imudp, ommysql, rsyslog.conf) | 1h | Phase 1 |
+| | Créer Dockerfiles (web, rsyslog, dashboard) | 2h | Phase 1-4 |
+| | Configurer MySQL (init.sql, tables, users) | 1h | Phase 1 |
+| | Résoudre dbconfig-common non-interactif | 0.5h | Phase 1 |
+| **Application GestionDeTâches** | Créer autoloader PSR-4 et structure MVC | 1h | Phase 2 |
+| | Implémenter Database (singleton PDO) | 0.5h | Phase 2 |
+| | Implémenter SyslogLogger (UDP socket) | 1h | Phase 2 |
+| | Implémenter AuthController (login/register/logout) | 2h | Phase 2 |
+| | Implémenter TaskController (CRUD + statut) | 2h | Phase 2 |
+| | Créer templates (layout, login, register, list, form) | 2h | Phase 2 |
+| **Dashboard** | Créer structure Dashboard (autoloader, Database) | 0.5h | Phase 4 |
+| | Implémenter DashboardController (logs, filtres, stats) | 3h | Phase 4 |
+| | Créer templates dashboard (dark mode) | 2h | Phase 4 |
+| **Réseau & Ports** | Déplacer web 8080 → 8081 pour libérer le port | 0.5h | Phase 3 |
+| | Configurer accès IPv6 | 0.5h | Phase 3 |
+| **Documentation** | Rédiger README.md | 1h | Phase 2-4 |
+| | Rédiger docs/projet_presentation.md | 2h | Phase 4 |
+| | Rédiger analyse ANSSI (15 recommandations) | 2h | Phase 4 |
+| | Créer diaporama Marp (presentation_slides.md) | 2h | Phase 4 |
+| | Documenter échanges IA (Historique conversations IA/) | 1h | Continu |
+| **Tests & Qualité** | Écrire tests unitaires (PHPUnit, mocks PDO) | 2h | Phase 4 |
+| | Configurer PHPStan (niveau max) | 0.5h | Phase 4 |
+| | Tests de validation manuels (10 cas) | 1h | Phase 4 |
+
+**Temps total estimé : ~30 heures** (projet mono-auteur, réalisé sur 1 semaine).
+
+### Dépendances entre tâches
+
+| Tâche | Dépend de | Description |
+|-------|-----------|-------------|
+| Configurer MySQL | Infrastructure Docker | MySQL doit être prêt avant le lancement des apps |
+| Implémenter SyslogLogger | Infrastructure Docker | Le logger nécessite rsyslog opérationnel |
+| Implémenter AuthController | Database, SyslogLogger, Templates | Dépend du socle technique (BDD, logs, vues) |
+| Implémenter TaskController | Database, SyslogLogger, Templates | Dépend du socle technique |
+| DashboardController | Database | Lecture seule de MySQL, indépendant du logger |
+| Tests unitaires | Modèles (Task, User) | Tests écrits après l'implémentation des modèles |
+| Tests de validation | Toute l'application | Tests manuels après finalisation des fonctionnalités |
+
+### Échéancier
+
+| Phase | Jours | Livrables |
+|:-----:|:-----:|-----------|
+| **Phase 1** | Jour 1 (4h) | docker-compose.yml, Dockerfiles, rsyslog.conf, init.sql |
+| **Phase 2** | Jours 1-2 (8h) | App GestionDeTâches complète (MVC, auth, CRUD, templates) |
+| **Phase 3** | Jour 2 (1h) | Ports, IPv6, réseau |
+| **Phase 4** | Jours 2-5 (17h) | Dashboard, documentation, analyse ANSSI, tests, PHPStan |
+
+### Répartition (projet mono-auteur)
+
+Projet réalisé individuellement. L'ensemble des tâches (analyse, développement, documentation, tests) a été effectué par le même développeur. La charge totale (~30h) est répartie sur 5 jours ouvrés, soit une moyenne de 6h/jour.
+
+---
+
 ## Matériels et logiciels utilisés
 
 | Élément | Technologie |
@@ -143,6 +201,9 @@ Interface de monitoring avec :
 ---
 
 ## UML — Diagramme de cas d'utilisation
+
+> **Fichier UML standard** : `docs/diagrams/use_case.puml` (PlantUML)
+> Ouvrir avec [PlantUML](https://plantuml.com) ou [PlantText](https://www.planttext.com) pour générer le diagramme.
 
 ### Acteurs
 
@@ -233,6 +294,9 @@ Interface de monitoring avec :
 
 ## UML — Diagramme de déploiement
 
+> **Fichier UML standard** : `docs/diagrams/deployment.puml` (PlantUML)
+> Ouvrir avec [PlantUML](https://plantuml.com) ou [PlantText](https://www.planttext.com) pour générer le diagramme.
+
 ```
 ┌───────────────────────────────────────────────────────────┐
 │                      Docker Host                          │
@@ -318,29 +382,88 @@ Utilisateur (Navigateur)
 5. Le Dashboard affiche les logs formatés avec filtres et statistiques
 ```
 
+### Adressage réseau
+
+| Élément | Valeur |
+|---------|--------|
+| **Réseau Docker** | `gestiondetaches_default` (bridge) |
+| **Sous-réseau** | `172.19.0.0/16` |
+| **Plage IP** | `172.19.0.2` à `172.19.255.254` |
+| **Passerelle** | `172.19.0.1` |
+| **web** | `172.19.0.2` (ports: 8081 hôte → 8080 conteneur) |
+| **rsyslog** | `172.19.0.3` (port: 514/UDP) |
+| **mysql** | `172.19.0.4` (port: 3306/TCP) |
+| **dashboard** | `172.19.0.5` (ports: 8080 hôte → 8080 conteneur) |
+
+### Règles de pare-feu / zones de sécurité
+
+| Zone | Trafic entrant | Trafic sortant | Justification |
+|------|:--------------:|:--------------:|---------------|
+| **web** | HTTP 8081 (hôte) | UDP 514 → rsyslog | Application publique, envoie les logs |
+| **rsyslog** | UDP 514 (web) | TCP 3306 → mysql | Collecteur de logs, écriture seule |
+| **mysql** | TCP 3306 (rsyslog, dashboard) | — | Base de données, pas d'accès externe direct |
+| **dashboard** | HTTP 8080 (hôte) | TCP 3306 → mysql | Interface de supervision, lecture seule |
+
+**Principes de segmentation :**
+- Les conteneurs sont isolés sur un réseau bridge Docker dédié
+- Aucun port MySQL n'est exposé sur l'hôte (sécurisé en interne)
+- rsyslog n'accepte que les datagrammes UDP entrants (pas de TCP)
+- Seuls les ports HTTP (8080, 8081) sont ouverts vers l'hôte
+
 ---
 
 ## Sitemap
 
-### Application GestionDeTâches (port 8081)
+### Arborescence des pages
 
-| Route | Méthode | Page |
-|-------|---------|------|
-| `/login` | GET | Formulaire de connexion |
-| `/login` | POST | Traitement de la connexion |
-| `/register` | GET | Formulaire d'inscription |
-| `/register` | POST | Traitement de l'inscription |
-| `/logout` | GET | Déconnexion |
-| `/` | GET | Liste des tâches (accueil) |
-| `/create` | GET | Formulaire de création de tâche |
-| `/create` | POST | Traitement de la création |
-| `/edit/{id}` | GET | Formulaire de modification de tâche |
-| `/edit/{id}` | POST | Traitement de la modification |
-| `/delete/{id}` | POST | Suppression de tâche |
-| `/status/{id}` | POST | Changement de statut |
-| *(autres)* | * | 404 Not Found |
+```
+GestionDeTâches (port 8081)
+├── 🔓 Pages publiques (sans authentification)
+│   ├── /login              GET    — Connexion
+│   └── /register           GET    — Inscription
+│
+├── 🔒 Pages protégées (authentification requise)
+│   ├── /                   GET    — Accueil / liste des tâches
+│   ├── /create             GET    — Création de tâche
+│   ├── /edit/{id}          GET    — Modification de tâche
+│   └── /logout             GET    — Déconnexion
+│
+└── ⚡ Routes POST (actions)
+    ├── /login              POST   — Traitement connexion
+    ├── /register           POST   — Traitement inscription
+    ├── /create             POST   — Traitement création
+    ├── /edit/{id}          POST   — Traitement modification
+    ├── /delete/{id}        POST   — Suppression tâche
+    └── /status/{id}        POST   — Changement statut
 
-### Application Dashboard (port 8080)
+Dashboard (port 8080) — 🔓 Accès libre (supervision)
+├── /                       GET    — Logs + stats
+├── /?category={cat}        GET    — Logs filtrés
+├── /?action={action}       GET    — Logs filtrés par action
+└── /tasks                  GET    — Liste des tâches
+```
+
+### Tableau détaillé
+
+#### Application GestionDeTâches (port 8081)
+
+| Route | Méthode | Page | Accès |
+|-------|---------|------|-------|
+| `/login` | GET | Formulaire de connexion | 🔓 Public |
+| `/login` | POST | Traitement de la connexion | 🔓 Public |
+| `/register` | GET | Formulaire d'inscription | 🔓 Public |
+| `/register` | POST | Traitement de l'inscription | 🔓 Public |
+| `/logout` | GET | Déconnexion | 🔒 Authentifié |
+| `/` | GET | Liste des tâches (accueil) | 🔒 Authentifié |
+| `/create` | GET | Formulaire de création de tâche | 🔒 Authentifié |
+| `/create` | POST | Traitement de la création | 🔒 Authentifié |
+| `/edit/{id}` | GET | Formulaire de modification de tâche | 🔒 Authentifié |
+| `/edit/{id}` | POST | Traitement de la modification | 🔒 Authentifié |
+| `/delete/{id}` | POST | Suppression de tâche | 🔒 Authentifié |
+| `/status/{id}` | POST | Changement de statut | 🔒 Authentifié |
+| *(autres)* | * | 404 Not Found | 🔓 Public |
+
+#### Application Dashboard (port 8080) — 🔓 Accès libre
 
 | Route | Méthode | Page |
 |-------|---------|------|
@@ -399,6 +522,73 @@ Utilisateur (Navigateur)
 │  │ Réunion      │ [moyenne]│ …  │  │
 │  │ Ranger bureau│ [basse]  │ …  │  │
 │  └──────────────┴──────────┴────┘  │
+└────────────────────────────────────┘
+```
+
+### GestionDeTâches — Inscription
+
+```
+┌────────────────────────────────────┐
+│  Gestion de Tâches                 │
+│                                    │
+│  ┌──────────────────────────────┐  │
+│  │        Inscription           │  │
+│  │                              │  │
+│  │  Nom d'utilisateur           │  │
+│  │  ┌──────────────────────┐    │  │
+│  │  │                      │    │  │
+│  │  └──────────────────────┘    │  │
+│  │                              │  │
+│  │  Mot de passe               │  │
+│  │  ┌──────────────────────┐    │  │
+│  │  │  •••••••••••••       │    │  │
+│  │  └──────────────────────┘    │  │
+│  │                              │  │
+│  │  Confirmer mot de passe     │  │
+│  │  ┌──────────────────────┐    │  │
+│  │  │  •••••••••••••       │    │  │
+│  │  └──────────────────────┘    │  │
+│  │                              │  │
+│  │  ┌──────────────────────┐    │  │
+│  │  │   S'inscrire         │    │  │
+│  │  └──────────────────────┘    │  │
+│  │                              │  │
+│  │  Déjà un compte ?            │  │
+│  │  Se connecter                │  │
+│  └──────────────────────────────┘  │
+└────────────────────────────────────┘
+```
+
+### GestionDeTâches — Modification de tâche
+
+```
+┌────────────────────────────────────┐
+│  Gestion de Tâches        admin 🚪│
+│                                    │
+│  ┌──────────────────────────────┐  │
+│  │     Modifier la tâche        │  │
+│  │                              │  │
+│  │  Titre                       │  │
+│  │  ┌──────────────────────┐    │  │
+│  │  │Faire rapport annuel  │    │  │
+│  │  └──────────────────────┘    │  │
+│  │                              │  │
+│  │  Description                 │  │
+│  │  ┌──────────────────────┐    │  │
+│  │  │ Préparer les chiffres │    │  │
+│  │  │ et le bilan de       │    │  │
+│  │  │ l'année écoulée      │    │  │
+│  │  └──────────────────────┘    │  │
+│  │                              │  │
+│  │  Priorité                    │  │
+│  │  ┌──────────────────────┐    │  │
+│  │  │ [haute]    ▼         │    │  │
+│  │  └──────────────────────┘    │  │
+│  │                              │  │
+│  │  ┌─────────┐ ┌──────────┐   │  │
+│  │  │Enreg.   │ │ Annuler  │   │  │
+│  │  └─────────┘ └──────────┘   │  │
+│  └──────────────────────────────┘  │
 └────────────────────────────────────┘
 ```
 
