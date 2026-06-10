@@ -1,12 +1,20 @@
 <?php
 
+namespace App\Controller;
+
+use App\Core\Database;
+use App\Model\User;
+use App\Service\LoggerInterface;
+
 class AuthController
 {
-    private PDO $pdo;
+    private User $user;
+    private LoggerInterface $logger;
 
-    public function __construct(PDO $pdo)
+    public function __construct(LoggerInterface $logger)
     {
-        $this->pdo = $pdo;
+        $this->user = new User(Database::getInstance());
+        $this->logger = $logger;
     }
 
     public function handleLoginForm(): void
@@ -18,25 +26,32 @@ class AuthController
     {
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
         if ($username === '' || $password === '') {
+            $this->logAuthFailure('Champs vides', $username, $ip);
             $this->render('login', ['error' => 'Identifiants requis.', 'hideCreate' => true]);
             return;
         }
 
-        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE username = ?');
-        $stmt->execute([$username]);
-        $user = $stmt->fetch();
+        $userRow = $this->user->findByUsername($username);
 
-        if (!$user || !password_verify($password, $user['password'])) {
+        if (!$userRow || !password_verify($password, $userRow['password'])) {
+            $this->logAuthFailure('Identifiants incorrects', $username, $ip);
             $this->render('login', ['error' => 'Identifiants incorrects.', 'hideCreate' => true]);
             return;
         }
 
         $_SESSION['user'] = [
-            'id' => (int)$user['id'],
-            'username' => $user['username'],
+            'id' => (int)$userRow['id'],
+            'username' => $userRow['username'],
         ];
+
+        $this->logger->send('info', 'tasklogger', json_encode([
+            'action' => 'AUTH_LOGIN_SUCCESS',
+            'username' => $userRow['username'],
+            'ip' => $ip,
+        ]));
 
         header('Location: /');
         exit;
@@ -44,6 +59,13 @@ class AuthController
 
     public function handleLogout(): void
     {
+        $username = $_SESSION['user']['username'] ?? 'unknown';
+
+        $this->logger->send('info', 'tasklogger', json_encode([
+            'action' => 'AUTH_LOGOUT',
+            'username' => $username,
+        ]));
+
         unset($_SESSION['user']);
         session_destroy();
         header('Location: /login');
@@ -59,32 +81,39 @@ class AuthController
     {
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
         if ($username === '' || $password === '') {
+            $this->logAuthFailure('Champs vides', $username, $ip);
             $this->render('register', ['error' => 'Tous les champs sont requis.', 'hideCreate' => true]);
             return;
         }
 
         if (strlen($password) < 4) {
+            $this->logAuthFailure('Mot de passe trop court', $username, $ip);
             $this->render('register', ['error' => 'Le mot de passe doit faire au moins 4 caractères.', 'hideCreate' => true]);
             return;
         }
 
-        $stmt = $this->pdo->prepare('SELECT id FROM users WHERE username = ?');
-        $stmt->execute([$username]);
-        if ($stmt->fetch()) {
+        if ($this->user->exists($username)) {
+            $this->logAuthFailure('Utilisateur existant', $username, $ip);
             $this->render('register', ['error' => 'Ce nom d\'utilisateur existe déjà.', 'hideCreate' => true]);
             return;
         }
 
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $this->pdo->prepare('INSERT INTO users (username, password) VALUES (?, ?)');
-        $stmt->execute([$username, $hash]);
+        $id = $this->user->create($username, $hash);
 
         $_SESSION['user'] = [
-            'id' => (int)$this->pdo->lastInsertId(),
+            'id' => $id,
             'username' => $username,
         ];
+
+        $this->logger->send('info', 'tasklogger', json_encode([
+            'action' => 'AUTH_REGISTER_SUCCESS',
+            'username' => $username,
+            'ip' => $ip,
+        ]));
 
         header('Location: /');
         exit;
@@ -98,9 +127,19 @@ class AuthController
         }
     }
 
+    private function logAuthFailure(string $reason, string $username, string $ip): void
+    {
+        $this->logger->send('warning', 'tasklogger', json_encode([
+            'action' => 'AUTH_LOGIN_FAILED',
+            'reason' => $reason,
+            'username' => $username,
+            'ip' => $ip,
+        ]));
+    }
+
     private function render(string $template, array $data = []): void
     {
         extract($data);
-        require __DIR__ . '/../templates/layout.php';
+        require __DIR__ . '/../../templates/layout.php';
     }
 }

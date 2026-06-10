@@ -1,9 +1,16 @@
 <?php
 
+use Dashboard\Controller\DashboardController;
+
 require_once __DIR__ . '/../src/autoload.php';
 
-$db = Database::getInstance();
-$controller = new DashboardController($db);
+set_exception_handler(function (Throwable $e) {
+    http_response_code(500);
+    echo 'Une erreur interne est survenue.';
+    exit;
+});
+
+$controller = new DashboardController();
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 

@@ -81,9 +81,13 @@
             justify-content: center;
             font-size: 16px;
         }
-        .log-icon.created { background: rgba(63,185,80,.15); color: #3fb950; }
+        .log-icon.created,
+        .log-icon.task { background: rgba(63,185,80,.15); color: #3fb950; }
         .log-icon.updated { background: rgba(210,153,34,.15); color: #d29922; }
         .log-icon.deleted { background: rgba(248,81,73,.15); color: #f85149; }
+        .log-icon.auth { background: rgba(88,166,255,.15); color: #58a6ff; }
+        .log-icon.security { background: rgba(248,81,73,.15); color: #f85149; }
+        .log-icon.error { background: rgba(213,84,255,.15); color: #d554ff; }
         .log-body { flex: 1; min-width: 0; }
         .log-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
         .log-action {
@@ -91,9 +95,13 @@
             padding: 2px 10px; border-radius: 12px;
             text-transform: uppercase; letter-spacing: 0.3px;
         }
-        .log-action.created { background: rgba(63,185,80,.15); color: #3fb950; }
+        .log-action.created,
+        .log-action.task { background: rgba(63,185,80,.15); color: #3fb950; }
         .log-action.updated { background: rgba(210,153,34,.15); color: #d29922; }
         .log-action.deleted { background: rgba(248,81,73,.15); color: #f85149; }
+        .log-action.auth { background: rgba(88,166,255,.15); color: #58a6ff; }
+        .log-action.security { background: rgba(248,81,73,.15); color: #f85149; }
+        .log-action.error { background: rgba(213,84,255,.15); color: #d554ff; }
         .log-time { font-size: 12px; color: #6e7681; }
         .log-message { font-size: 14px; color: #e1e4e8; line-height: 1.5; }
         .log-message strong { color: #f0f6fc; }

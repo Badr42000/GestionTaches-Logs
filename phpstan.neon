@@ -1,0 +1,10 @@
+parameters:
+    level: max
+    paths:
+        - app/src
+        - dashboard/src
+    excludePaths:
+        - app/src/autoload.php
+        - dashboard/src/autoload.php
+    checkGenericClassInNonGenericObjectType: false
+    reportUnmatchedIgnoredErrors: false

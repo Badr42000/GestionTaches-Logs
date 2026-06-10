@@ -1,20 +1,32 @@
 <?php
 
+namespace App\Controller;
+
+use App\Core\Database;
+use App\Model\Task;
+use App\Service\LoggerInterface;
+
 class TaskController
 {
-    private PDO $pdo;
-    private Logger $logger;
+    private Task $task;
+    private LoggerInterface $logger;
 
-    public function __construct(PDO $pdo, Logger $logger)
+    public function __construct(LoggerInterface $logger)
     {
-        $this->pdo = $pdo;
+        $this->task = new Task(Database::getInstance());
         $this->logger = $logger;
     }
 
     public function handleList(): void
     {
-        $stmt = $this->pdo->query('SELECT * FROM tasks ORDER BY created_at DESC');
-        $tasks = $stmt->fetchAll();
+        $username = $_SESSION['user']['username'] ?? 'unknown';
+        $tasks = $this->task->findAll();
+
+        $this->logger->send('info', 'tasklogger', json_encode([
+            'action' => 'TASK_LISTED',
+            'username' => $username,
+            'count' => count($tasks),
+        ]));
 
         $this->render('list', ['tasks' => $tasks]);
     }
@@ -41,11 +53,7 @@ class TaskController
             return;
         }
 
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO tasks (title, description, priority, created_by) VALUES (?, ?, ?, ?)'
-        );
-        $stmt->execute([$title, $description, $priority, $username]);
-        $id = (int)$this->pdo->lastInsertId();
+        $id = $this->task->create($title, $description, $priority, $username);
 
         $this->logger->send('info', 'tasklogger', json_encode([
             'action' => 'TASK_CREATED',
@@ -62,7 +70,15 @@ class TaskController
 
     public function handleEditForm(int $id): void
     {
+        $username = $_SESSION['user']['username'] ?? 'unknown';
         $task = $this->findTaskOr404($id);
+
+        $this->logger->send('info', 'tasklogger', json_encode([
+            'action' => 'TASK_VIEWED',
+            'id' => $id,
+            'title' => $task['title'],
+            'username' => $username,
+        ]));
 
         $this->render('form', ['task' => $task]);
     }
@@ -82,10 +98,7 @@ class TaskController
             return;
         }
 
-        $stmt = $this->pdo->prepare(
-            'UPDATE tasks SET title = ?, description = ?, priority = ? WHERE id = ?'
-        );
-        $stmt->execute([$title, $description, $priority, $id]);
+        $this->task->update($id, $title, $description, $priority);
 
         $this->logger->send('info', 'tasklogger', json_encode([
             'action' => 'TASK_UPDATED',
@@ -104,8 +117,7 @@ class TaskController
         $task = $this->findTaskOr404($id);
         $username = $_SESSION['user']['username'] ?? 'unknown';
 
-        $stmt = $this->pdo->prepare('DELETE FROM tasks WHERE id = ?');
-        $stmt->execute([$id]);
+        $this->task->delete($id);
 
         $this->logger->send('info', 'tasklogger', json_encode([
             'action' => 'TASK_DELETED',
@@ -130,13 +142,12 @@ class TaskController
             exit;
         }
 
-        $stmt = $this->pdo->prepare('UPDATE tasks SET status = ? WHERE id = ?');
-        $stmt->execute([$newStatus, $id]);
+        $this->task->updateStatus($id, $newStatus);
 
         $this->logger->send('info', 'tasklogger', json_encode([
-            'action' => 'TASK_UPDATED',
+            'action' => 'TASK_STATUS_CHANGED',
             'id' => $id,
-            'field' => 'status',
+            'title' => $task['title'],
             'old_value' => $task['status'],
             'new_value' => $newStatus,
             'username' => $username,
@@ -148,11 +159,16 @@ class TaskController
 
     private function findTaskOr404(int $id): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM tasks WHERE id = ?');
-        $stmt->execute([$id]);
-        $task = $stmt->fetch();
+        $task = $this->task->findById($id);
 
         if (!$task) {
+            $username = $_SESSION['user']['username'] ?? 'unknown';
+            $this->logger->send('warning', 'tasklogger', json_encode([
+                'action' => 'SECURITY_RESOURCE_NOT_FOUND',
+                'type' => 'task',
+                'id' => $id,
+                'username' => $username,
+            ]));
             http_response_code(404);
             echo 'Tâche introuvable.';
             exit;
@@ -164,6 +180,6 @@ class TaskController
     private function render(string $template, array $data = []): void
     {
         extract($data);
-        require __DIR__ . '/../templates/layout.php';
+        require __DIR__ . '/../../templates/layout.php';
     }
 }
