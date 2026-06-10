@@ -2,11 +2,12 @@
 
 namespace App\Controller;
 
+use App\Core\BaseController;
 use App\Core\Database;
 use App\Model\Task;
 use App\Service\LoggerInterface;
 
-class TaskController
+class TaskController extends BaseController
 {
     private Task $task;
     private LoggerInterface $logger;
@@ -177,9 +178,4 @@ class TaskController
         return $task;
     }
 
-    private function render(string $template, array $data = []): void
-    {
-        extract($data);
-        require __DIR__ . '/../../templates/layout.php';
-    }
 }

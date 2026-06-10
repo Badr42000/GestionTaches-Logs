@@ -2,11 +2,12 @@
 
 namespace App\Controller;
 
+use App\Core\BaseController;
 use App\Core\Database;
 use App\Model\User;
 use App\Service\LoggerInterface;
 
-class AuthController
+class AuthController extends BaseController
 {
     private User $user;
     private LoggerInterface $logger;
@@ -137,9 +138,4 @@ class AuthController
         ]));
     }
 
-    private function render(string $template, array $data = []): void
-    {
-        extract($data);
-        require __DIR__ . '/../../templates/layout.php';
-    }
 }

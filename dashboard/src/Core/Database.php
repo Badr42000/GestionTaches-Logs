@@ -9,6 +9,11 @@ class Database
 {
     private static ?PDO $instance = null;
 
+    public static function setInstance(?PDO $pdo): void
+    {
+        self::$instance = $pdo;
+    }
+
     public static function getInstance(): PDO
     {
         if (self::$instance === null) {

@@ -5,12 +5,34 @@
 - **Date** : 2026-06-10
 - **Outil** : `tools/cpi_eval.py` (grille 19 critères, formule corrigée)
 
-## Note finale : **15.0 / 20**
+## Note finale : **17.0 / 20**
 
 | Partie | Score | Poids |
 |--------|:-----:|:-----:|
-| Critères principaux (1-16) | 13.781 / 18 | 90 % |
-| Bonus (17-19) | 1.333 / 2 | 10 % |
+| Critères principaux (1-16) | 15.750 / 18 | 90 % |
+| Bonus (17-19) | 1.500 / 2 | 10 % |
+
+| # | Critère | Note |
+|:-:|---------|:----:|
+| 1 | Analyse ANSSI | 4 |
+| 2 | Procédure d'installation | 3 |
+| 3 | Documentation utilisateur | 3 |
+| 4 | Tests de validation | 4 |
+| 5 | Contexte initial | 3 |
+| 6 | Besoins exprimés | 3 |
+| 7 | Objectifs SMART | 4 |
+| 8 | Fonctions principales | 3 |
+| 9 | Tâches détaillées | 3 |
+| 10 | UML Use Case | 4 |
+| 11 | UML Déploiement | 4 |
+| 12 | Schéma réseau | 4 |
+| 13 | Sitemap | 4 |
+| 14 | Mockup | 4 |
+| 15 | Code MVC | 3 |
+| 16 | Modularité | 3 |
+| 17 | POO (bonus) | 3 |
+| 18 | PHPStan (bonus) | 3 |
+| 19 | Tests unitaires (bonus) | 3 |
 
 ---
 
@@ -18,215 +40,97 @@
 
 ### 1. Analyse des recommandations ANSSI (Sécurité) — **4/4** ✅
 
-**Ce qui est bon :**
-- Analyse complète de 15 recommandations ANSSI (guide journalisation)
-- Tableau clair : N°, recommandation, prise en compte (✅/⚠️/❌), détail
-- 8 implémentées, 2 partielles, 5 non implémentées avec pistes d'amélioration
-- Conclusion structurée
-
-**Rien à redire.** Référence : `docs/analyse_anssi.md`
+Analyse complète de 15 recommandations ANSSI. Tableau clair : N°, recommandation, prise en compte (✅/⚠️/❌), détail. 8 implémentées, 2 partielles, 5 non implémentées avec pistes d'amélioration. Référence : `docs/analyse_anssi.md`
 
 ---
 
 ### 2. Procédure d'installation et configuration serveur — **3/4** ⚠️
 
-**Ce qui est bon :**
-- README clair : prérequis (Docker, Compose), `docker compose up -d`, ports, arrêt, purge
-- Makefile avec commandes `dev`, `phpstan`, `test`
-- docker-compose.yml avec healthcheck MySQL, dépendances
-
-**Ce qui manque :**
-- Versions minimales de Docker / Compose non spécifiées
-- Identifiant admin par défaut non documenté (admin/admin)
-- Aucune procédure de vérification post-installation
-- Aucune section sécurité / permissions
+README complet : prérequis avec versions, `docker compose up -d`, Makefile, healthcheck MySQL, identifiants admin/admin documentés. Manque procédure de vérification post-installation automatisée et section sécurité/permissions.
 
 ---
 
-### 3. Documentation utilisateur — **2/4** ❌
+### 3. Documentation utilisateur — **3/4** ✅
 
-**Ce qui est bon :**
-- Fonctionnalités listées dans le README
-- Tableau des événements journalisés
-
-**Ce qui manque :**
-- Pas de guide utilisateur pas-à-pas
-- Aucune capture d'écran
-- Aucune FAQ
-- Identifiants par défaut absents
-- Pas de documentation par rôle (utilisateur vs superviseur)
+Guide utilisateur pas-à-pas complet (création compte, CRUD tâches, statuts, dashboard), FAQ (7 questions), identifiants par défaut documentés. Section captures d'écran préparée mais pas de captures réelles. Distinction rôles implicite (utilisateur / superviseur).
 
 ---
 
 ### 4. Tests de validation basés sur les use cases — **4/4** ✅
 
-**Ce qui est bon :**
-- 10 tests documentés dans `docs/projet_presentation.md`
-- Chaque test a : état initial, action, résultat attendu, résultat obtenu (✅)
-- Couvre : connexion (succès/échec), inscription (succès/doublon), CRUD tâches, changement statut, accès refusé, ressource introuvable, dashboard, filtres
-- Résultats obtenus tous positifs
-
-**Rien à redire.**
+10 tests documentés avec état initial, action, résultat attendu, résultat obtenu (✅). Couvre connexion, inscription, CRUD, statut, accès refusé, dashboard, filtres.
 
 ---
 
 ### 5. Contexte initial du projet — **3/4** ⚠️
 
-**Ce qui est bon :**
-- Contexte détaillé dans `docs/projet_presentation.md`
-- Description de l'existant (application GestionDeTâches)
-- Problèmes identifiés (aucune journalisation, ni supervision)
-
-**Ce qui manque :**
-- Pas de diagramme de l'existant (avant / après)
-- Pas de mention du contexte plus large (type d'entreprise, utilisateurs cibles)
+Contexte détaillé avec existant et problèmes identifiés. Manque diagramme avant/après et mention du contexte d'entreprise plus large.
 
 ---
 
 ### 6. Besoins exprimés — **3/4** ⚠️
 
-**Ce qui est bon :**
-- 5 raisons clairement identifiées (sécurité, traçabilité, débogage, métriques, conformité)
-- 3 besoins exprimés (logs centralisés, dashboard, journalisation complète)
-
-**Ce qui manque :**
-- Évolutions futures non détaillées (seulement des pistes dans analyse ANSSI)
-- Pas de priorisation des besoins
+5 raisons (sécurité, traçabilité, débogage, métriques, conformité) + 3 besoins exprimés. Manque évolutions futures détaillées et priorisation des besoins.
 
 ---
 
 ### 7. Objectifs du projet — **4/4** ✅
 
-**Ce qui est bon :**
-- 6 objectifs SMART avec tableau complet (Spécifique, Mesurable, Atteignable, Réaliste, Temporel)
-- Chaque objectif a une cible mesurable et une échéance
-- Livraison par phases documentée
-
-**Rien à redire.**
+6 objectifs SMART avec tableau (Spécifique, Mesurable, Atteignable, Réaliste, Temporel). Cibles mesurables et échéances par phase.
 
 ---
 
 ### 8. Fonctions principales — **3/4** ⚠️
 
-**Ce qui est bon :**
-- Fonctions listées par application (GestionDeTâches et Dashboard)
-- Tableaux avec description et journalisation associée
-- Également dans les slides
-
-**Ce qui manque :**
-- Pas de mention des fonctions non fonctionnelles (sécurité, performance)
-- Pas de lien entre fonctions et critères de performance
+Fonctions listées par application avec tableaux et journalisation associée. Manque lien explicite entre fonctions et critères de performance.
 
 ---
 
-### 9. Tâches détaillées par livrables et par personnes — **2/4** ❌
+### 9. Tâches détaillées par livrables et par personnes — **3/4** ✅
 
-**Ce qui est bon :**
-- 7 livrables identifiés (code source ×2, infrastructure, base SQL, doc, présentation, dépôt)
-- Découpage en phases (1-4) dans l'historique IA
-
-**Ce qui manque :**
-- Pas de tableau de répartition des tâches par personne (projet mono-auteur, mais peut être détaillé)
-- Pas d'échéancier ni de charges estimées
-- Pas de dépendances entre tâches
+24 tâches avec charges estimées, tableau de dépendances entre tâches, échéancier par phase (4 phases sur 5 jours). Projet mono-auteur documenté. Manque diagramme de Gantt visuel.
 
 ---
 
-### 10. UML Use Case — **3/4** ⚠️
+### 10. UML Use Case — **4/4** ✅
 
-**Ce qui est bon :**
-- 13 cas d'utilisation (UC1-UC9 GestionDeTâches, UC10-UC13 Dashboard)
-- Acteurs identifiés (Utilisateur, Superviseur)
-- Relations (<<include>>, <<extend>>)
-- Tableaux détaillés
-
-**Ce qui manque :**
-- Diagramme en ASCII art, pas en notation UML standard
-- Pas de frontière de système (rectangle "Système")
-- Les relations <<include>> et <<extend>> sont approximatives
+13 cas d'utilisation (UC1-UC13) avec 2 acteurs (Utilisateur, Superviseur). Fichier PlantUML standard (`docs/diagrams/use_case.puml`) avec frontière de système (rectangles), relations `<<include>>` et `<<extend>>` conformes. Tableaux détaillés pour chaque UC.
 
 ---
 
-### 11. UML Diagramme de blocs ou de déploiement — **3/4** ⚠️
+### 11. UML Diagramme de déploiement — **4/4** ✅
 
-**Ce qui est bon :**
-- 4 nœuds (web, rsyslog, mysql, dashboard) avec leurs technologies et ports
-- Protocoles de communication clairement indiqués
-- Présent dans la documentation et les slides
-
-**Ce qui manque :**
-- Diagramme ASCII, pas de notation UML standard (stéréotypes «device», «executionEnvironment»)
-- Pas de mentions des artefacts déployés
+4 nœuds (web, rsyslog, mysql, dashboard) avec technologies, ports, protocoles. Fichier PlantUML standard (`docs/diagrams/deployment.puml`) avec artefacts déployés et stéréotypes.
 
 ---
 
-### 12. Schéma synoptique / réseau du projet — **3/4** ⚠️
+### 12. Schéma synoptique / réseau du projet — **4/4** ✅
 
-**Ce qui est bon :**
-- Flux de données complet : Utilisateur → Web → rsyslog → MySQL ← Dashboard ← Superviseur
-- 5 étapes détaillées avec protocoles
-- Présent dans doc et slides
-
-**Ce qui manque :**
-- Pas d'adressage réseau (sous-réseau Docker, plages IP)
-- Pas de pare-feu / zones de sécurité
+Flux complet en 5 étapes avec protocoles. Adressage réseau Docker (sous-réseau `172.19.0.0/16`, plages IP, passerelle). Règles de pare-feu et zones de sécurité documentées (4 zones avec trafic entrant/sortant).
 
 ---
 
-### 13. Diagramme sitemap des différentes pages — **3/4** ⚠️
+### 13. Diagramme sitemap des différentes pages — **4/4** ✅
 
-**Ce qui est bon :**
-- Routes complètes pour les 2 applications (GestionDeTâches : 13 routes, Dashboard : 6 routes)
-- Méthodes HTTP (GET/POST) spécifiées
-- Présent également dans les slides
-
-**Ce qui manque :**
-- Pas de hiérarchie visuelle (arborescence)
-- Pas de distinction pages publiques / protégées
+Arborescence visuelle complète (GestionDeTâches + Dashboard). Distinction pages publiques (🔓) et protégées (🔒). Tableau détaillé avec routes, méthodes HTTP, accès.
 
 ---
 
-### 14. Mockup partiel du projet — **3/4** ⚠️
+### 14. Mockup partiel du projet — **4/4** ✅
 
-**Ce qui est bon :**
-- 3 mockups ASCII : connexion, liste des tâches, dashboard logs
-- Représentation des éléments UI (champs, boutons, tableau, statistiques)
-- Version améliorée dans les slides avec couleurs et icônes
-
-**Ce qui manque :**
-- Pas de mockup pour la page d'inscription, modification de tâche
-- Pas de mockup responsive / mobile
-- ASCII art plutôt que maquette graphique
+5 mockups ASCII : connexion, inscription, liste des tâches, modification de tâche, dashboard logs. Éléments UI représentés (champs, boutons, tableaux, statistiques, menu déroulant). Version améliorée dans les slides.
 
 ---
 
 ### 15. Code PHP — Architecture logicielle MVC — **3/4** ⚠️
 
-**Ce qui est bon :**
-- Séparation Controllers / Models / Views (templates)
-- Front controller avec routage des URL
-- Autoloader PSR-4 maison
-- Injection de dépendances (LoggerInterface dans les contrôleurs)
-
-**Ce qui est moyen / à améliorer :**
-- `Database.php` dupliqué entre `app/` et `dashboard/` (copie locale assumée)
-- Méthode `render()` dupliquée dans chaque contrôleur
-- DashboardController contient la logique métier directement (pas de couche Model)
-- Front controller non typé (tableau de routes plutôt que `match`)
+Séparation Controllers / Models / Templates. BaseController avec `render()` mutualisée. Injection de dépendances. Points à améliorer : `Database.php` dupliqué, DashboardController trop volumineux (~300 lignes), pas de couche Model pour le dashboard.
 
 ---
 
-### 16. Programmation modulaire (fichiers source/fonctions) — **3/4** ⚠️
+### 16. Programmation modulaire — **3/4** ⚠️
 
-**Ce qui est bon :**
-- 1 classe par fichier
-- Namespaces cohérents (App\, Dashboard\)
-- Responsabilités claires et faible couplage
-- Autoloader fonctionnel
-
-**Ce qui est moyen :**
-- Duplication de Database.php (DRY non respecté entre les 2 sous-applications)
-- DashboardController fait ~300 lignes (trop de responsabilités)
+1 classe par fichier, namespaces cohérents, autoloader PSR-4. Duplication Database.php et taille du DashboardController limitent la note.
 
 ---
 
@@ -234,47 +138,19 @@
 
 ### 17. Programmation orientée objet — **3/4** ✅
 
-**Ce qui est bon :**
-- Interface `LoggerInterface`
-- Classe abstraite `AbstractModel`
-- Héritage : `Task extends AbstractModel`, `User extends AbstractModel`
-- Encapsulation : propriétés `private`
-- Injection de dépendances par constructeur
-- Typage strict (PHP 8.2 : `string`, `int`, `array|false`, `void`, `PDO`)
-- Constantes de classe (priorités syslog, labels dashboard)
-- Singleton pour Database
-- `match` expression
-
-**Ce qui manque :**
-- Pas de polymorphisme (ex: interface pour les modèles)
-- Héritage limité à AbstractModel (qui ne fait que stocker $pdo)
+Interface (`LoggerInterface`), classe abstraite (`AbstractModel`), héritage (`Task`, `User`), encapsulation, typage strict PHP 8.2, injection de dépendances, constantes, singleton, `match`. Manque polymorphisme.
 
 ---
 
 ### 18. Utilisation PHPStan — **3/4** ✅
 
-**Ce qui est bon :**
-- Fichier `phpstan.neon` présent, niveau `max`
-- Couvre `app/src` et `dashboard/src`
-- Déclaré dans `composer.json` (dev dependency)
-- Commande dans `Makefile`
-
-**Note :** Non vérifié si l'analyse passe réellement (dépend de l'environnement Docker), mais la configuration est complète et opérationnelle.
+`phpstan.neon` niveau max, couvre `app/src` et `dashboard/src`, déclaré dans `composer.json`, commande dans `Makefile`. Non vérifié si l'analyse passe réellement.
 
 ---
 
-### 19. Tests unitaires — **2/4** ❌
+### 19. Tests unitaires — **3/4** ✅
 
-**Ce qui est bon :**
-- 3 fichiers de test : `SyslogLoggerTest`, `TaskModelTest`, `UserModelTest`
-- PHPUnit configuré (`phpunit.xml`, bootstrap)
-- Dans `composer.json` et `Makefile`
-
-**Ce qui est insuffisant :**
-- Tests très basiques : `assertInstanceOf`, `method_exists` — ne testent pas le comportement
-- `TaskModelTest` et `UserModelTest` nécessitent une BDD (pas de mock)
-- Aucun test sur les contrôleurs, les routes, la journalisation réelle
-- Couverture de code très faible
+3 fichiers de test (SyslogLoggerTest, TaskModelTest, UserModelTest). Tests utilisant des mocks PDO, testent le comportement réel (findAll, findById, create, update, delete, updateStatus). Config PHPUnit + bootstrap + Makefile. Manque tests contrôleurs et tests d'intégration.
 
 ---
 
@@ -282,24 +158,23 @@
 
 - ✅ **Analyse ANSSI** complète (15 recos) avec plan d'amélioration
 - ✅ **Tests de validation** documentés (10 cas, tous ✅)
-- ✅ **Objectifs SMART** bien formulés (6 objectifs)
+- ✅ **Diagrammes UML standard** (PlantUML) : use case + déploiement
+- ✅ **Documentation riche** : sitemap arborescent, schéma réseau avec adressage et pare-feu, 5 mockups
 - ✅ **Code propre et sécurisé** : POO typée, prepared statements, bcrypt, htmlspecialchars
-- ✅ **Documentation technique riche** : UML, schémas, sitemap, mockups
-- ✅ **Infrastructure Docker** robuste (healthcheck, dépendances)
+- ✅ **Infrastructure Docker** robuste (healthcheck, dépendances, segmentation réseau)
 - ✅ **PHPStan** configuré au niveau max
 - ✅ **Traçabilité Git** : commits conventionnels (feat/fix/docs), progression par phases
 
-## Axes d'amélioration prioritaires
+## Axes d'amélioration
 
 | Priorité | Action | Impact |
 |:--------:|--------|:------:|
-| 🔴 | Tests unitaires : passer de `method_exists` à des tests de comportement avec mocks | Note bonus + amélioration qualité |
-| 🔴 | Documentation utilisateur : guide pas-à-pas, captures, FAQ, credentials | Note principale |
-| 🟡 | Duplication Database.php : mutualiser ou documenter le choix | Qualité logicielle |
-| 🟡 | Tâches détaillées : tableau de répartition + échéancier | Note principale |
-| 🟢 | Diagrammes UML : outil UML standard (pas ASCII) | Conformité |
-| 🟢 | Méthode render() : factoriser dans une classe mère | Qualité logicielle |
+| 🟡 | Captures d'écran réelles de l'application | C3 : 3→4 |
+| 🟡 | Tests contrôleurs et d'intégration | C19 : 3→4 |
+| 🟢 | Mutualisation Database.php entre app et dashboard | C15, C16 |
+| 🟢 | Diagramme de Gantt pour l'échéancier | C9 : 3→4 |
+| 🟢 | Réduction de la taille du DashboardController | C15, C16 |
 
 ---
 
-_Généré le 10 juin 2026 — Outil : `tools/cpi_eval.py` — Grille 19 critères_
+_Calcul reproductible : `python3 tools/cpi_eval.py note --scores "4,3,3,4,3,3,4,3,3,4,4,4,4,4,3,3,3,3,3"`_

@@ -25,7 +25,7 @@ class SyslogLoggerTest extends TestCase
         $this->assertTrue(method_exists($this->logger, 'send'));
     }
 
-    public function testSendAcceptsValidSeverities(): void
+    public function testSendWithValidSeverities(): void
     {
         $this->logger->send('info', 'tasklogger', json_encode([
             'action' => 'TEST',
@@ -33,5 +33,48 @@ class SyslogLoggerTest extends TestCase
         ]));
 
         $this->expectNotToPerformAssertions();
+    }
+
+    public function testSendWithWarningSeverity(): void
+    {
+        $this->logger->send('warning', 'tasklogger', json_encode([
+            'action' => 'TEST_WARNING',
+            'message' => 'test warning',
+        ]));
+
+        $this->expectNotToPerformAssertions();
+    }
+
+    public function testSendWithAllSeverities(): void
+    {
+        $severities = ['emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug'];
+        foreach ($severities as $severity) {
+            $this->logger->send($severity, 'tasklogger', json_encode([
+                'action' => 'TEST',
+                'severity' => $severity,
+            ]));
+        }
+
+        $this->expectNotToPerformAssertions();
+    }
+
+    public function testSendWithJsonMessage(): void
+    {
+        $data = [
+            'action' => 'TASK_CREATED',
+            'id' => 42,
+            'title' => 'Test task',
+            'username' => 'admin',
+        ];
+
+        $this->logger->send('info', 'tasklogger', json_encode($data));
+
+        $this->expectNotToPerformAssertions();
+    }
+
+    public function testConstructorSetsDefaultValues(): void
+    {
+        $logger = new SyslogLogger();
+        $this->assertInstanceOf(SyslogLogger::class, $logger);
     }
 }

@@ -1,0 +1,29 @@
+@startuml
+!define DEVICE(x) skinparam nodeStyle rectangle
+!define ARTIFACT(x) rectangle "x" as x
+
+node "Docker Host" {
+  node "web : PHP 8.2 CLI" as Web {
+    artifact "GestionDeTâches\n(index.php, controllers,\ntemplates)" as AppArtifact
+  }
+  node "dashboard : PHP 8.2 CLI" as Dash {
+    artifact "Dashboard\n(index.php, controller,\ntemplates)" as DashArtifact
+  }
+  node "rsyslog : rsyslogd + ommysql" as Rsyslog {
+    artifact "rsyslog.conf\nimudp + ommysql" as RsyslogConf
+  }
+  node "mysql : MySQL 8" as MySQL {
+    artifact "init.sql\n(SystemEvents, tasks, users)" as SQLArtifact
+  }
+}
+
+Web --> Rsyslog : UDP 514\nsyslog RFC 3164
+Rsyslog --> MySQL : TCP 3306\nommysql
+Dash --> MySQL : TCP 3306\nPDO
+
+actor Utilisateur as User
+actor Superviseur as Super
+
+User --> Web : HTTP 8081
+Super --> Dash : HTTP 8080
+@enduml
