@@ -1,5 +1,9 @@
 # Historique de la conversation — Projet GestionDeTâches
 
+> **Note** : Cette conversation est documentée sous forme de synthèse structurée par phases. Pour chaque phase, le prompt initial et les résultats obtenus sont présentés. Les échanges itératifs (questions/réponses/corrections) sont intégrés dans le déroulement de chaque phase.
+
+---
+
 ## Contexte
 
 Projet scolaire : développer deux applications PHP conteneurisées avec Docker.
@@ -58,6 +62,11 @@ Contrainte principale : les logs doivent transiter par rsyslog avant d'être sto
 
 ### Phase 1 : Infrastructure Docker
 
+**Prompt :**
+> Je dois créer un projet PHP scolaire avec Docker. L'application doit gérer des tâches (CRUD) et journaliser chaque action via rsyslog qui stocke dans MySQL. Je veux 3 services Docker : web (PHP 8.2), rsyslog avec ommysql, et MySQL 8. Peux-tu me générer les fichiers Docker nécessaires ?
+
+**Résultat :** Génération de l'infrastructure complète :
+
 **Fichiers créés :**
 - `docker-compose.yml` — orchestration des 3 services (web, rsyslog, mysql)
 - `docker/web/Dockerfile` — PHP 8.2-cli avec extensions pdo_mysql + sockets
@@ -68,7 +77,10 @@ Contrainte principale : les logs doivent transiter par rsyslog avant d'être sto
 
 **Erreur rencontrée :** Le package `rsyslog-mysql` de Debian déclenche `dbconfig-common` qui tente de configurer MySQL de manière interactive. MySQL n'étant pas dans le même conteneur, le build échoue.
 
-**Résolution :** Pré-configuration de debconf pour désactiver l'installation automatique de la base :
+**Prompt de correction :**
+> Le build échoue car dbconfig-common essaie de configurer MySQL de façon interactive. Comment désactiver ça pour un build non-interactif ?
+
+**Résultat :** Pré-configuration de debconf pour désactiver l'installation automatique de la base :
 ```dockerfile
 RUN echo 'rsyslog-mysql rsyslog-mysql/dbconfig-install boolean false' | debconf-set-selections && \
     apt-get install -y rsyslog rsyslog-mysql
@@ -81,6 +93,11 @@ RUN echo 'rsyslog-mysql rsyslog-mysql/dbconfig-install boolean false' | debconf-
 ---
 
 ### Phase 2 : Application PHP (TaskLogger)
+
+**Prompt :**
+> Maintenant que l'infrastructure Docker est prête, je veux coder l'application PHP GestionDeTâches. Elle doit permettre de créer/lire/modifier/supprimer des tâches avec titre, description, priorité et statut. Chaque action (création, modification, suppression, changement de statut) doit envoyer un log UDP à rsyslog au format JSON. Structure MVC avec contrôleur, templates séparés et autoloader.
+
+**Résultat :**
 
 **Fichiers créés :**
 - `app/public/router.php` — routeur pour le serveur PHP built-in
@@ -112,7 +129,10 @@ RUN echo 'rsyslog-mysql rsyslog-mysql/dbconfig-install boolean false' | debconf-
 
 ### Phase 3 : Ports et IPv6
 
-**Modification :** Déplacement du port web de 8080 → 8081 pour libérer le 8080 pour le futur Dashboard.
+**Prompt :**
+> J'ai besoin de libérer le port 8080 pour le futur dashboard. Peux-tu déplacer l'application web sur le port 8081 ? Et comment gérer l'accès IPv6 avec Docker ?
+
+**Résultat :** Déplacement du port web de 8080 → 8081 pour libérer le 8080 pour le Dashboard.
 
 **Accès configuré :**
 ```
@@ -128,6 +148,11 @@ Docker bind automatiquement sur toutes les interfaces (IPv4 + IPv6) avec `ports:
 ---
 
 ### Phase 4 : Dashboard
+
+**Prompt :**
+> Je veux ajouter un 4e service Docker appelé "dashboard" qui affiche les logs provenant de MySQL (table SystemEvents). Il doit y avoir des statistiques (total, par type d'action), des filtres par catégorie, et un affichage humanisé des messages JSON. Design dark mode. Le dashboard lit directement dans MySQL via PDO.
+
+**Résultat :**
 
 **Nouveau service :** `dashboard` dans docker-compose, port 8080.
 
@@ -152,6 +177,9 @@ Docker bind automatiquement sur toutes les interfaces (IPv4 + IPv6) avec `ports:
 - Dark mode (palette GitHub Dark)
 
 **Erreur rencontrée :** Le conteneur dashboard fraîchement créé ne voyait pas les fichiers du bind mount (`/var/www/html` vide alors que les fichiers existent sur l'hôte). Le problème venait d'un conteneur en cache.
+
+**Prompt de correction :**
+> Le dashboard voit un dossier /var/www/html vide alors que les fichiers sont bien présents sur l'hôte. Que faire ?
 
 **Résolution :** Recréation du conteneur :
 ```bash

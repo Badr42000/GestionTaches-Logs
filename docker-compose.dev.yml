@@ -1,0 +1,8 @@
+services:
+  web:
+    build:
+      dockerfile: docker/dev.Dockerfile
+    volumes:
+      - ./:/var/www
+    working_dir: /var/www
+    entrypoint: ["sleep", "infinity"]

@@ -1,11 +1,16 @@
 <?php
 
+use App\Controller\AuthController;
+use App\Controller\TaskController;
+use App\Core\Database;
+use App\Service\SyslogLogger;
+
 session_start();
 
 require_once __DIR__ . '/../src/autoload.php';
 
 set_exception_handler(function (Throwable $e) {
-    $logger = new Logger();
+    $logger = new SyslogLogger();
     $logger->send('err', 'tasklogger', json_encode([
         'action' => 'ERROR_UNHANDLED',
         'message' => $e->getMessage(),
@@ -17,10 +22,9 @@ set_exception_handler(function (Throwable $e) {
     exit;
 });
 
-$db = Database::getInstance();
-$logger = new Logger();
-$controller = new TaskController($db, $logger);
-$auth = new AuthController($db, $logger);
+$logger = new SyslogLogger();
+$controller = new TaskController($logger);
+$auth = new AuthController($logger);
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];

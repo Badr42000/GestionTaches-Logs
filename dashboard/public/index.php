@@ -1,5 +1,7 @@
 <?php
 
+use Dashboard\Controller\DashboardController;
+
 require_once __DIR__ . '/../src/autoload.php';
 
 set_exception_handler(function (Throwable $e) {
@@ -8,8 +10,7 @@ set_exception_handler(function (Throwable $e) {
     exit;
 });
 
-$db = Database::getInstance();
-$controller = new DashboardController($db);
+$controller = new DashboardController();
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 

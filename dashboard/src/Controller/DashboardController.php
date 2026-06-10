@@ -1,5 +1,10 @@
 <?php
 
+namespace Dashboard\Controller;
+
+use Dashboard\Core\Database;
+use PDO;
+
 class DashboardController
 {
     private PDO $pdo;
@@ -63,9 +68,9 @@ class DashboardController
         'ERROR_UNHANDLED' => 'error',
     ];
 
-    public function __construct(PDO $pdo)
+    public function __construct()
     {
-        $this->pdo = $pdo;
+        $this->pdo = Database::getInstance();
     }
 
     public function handleList(): void
@@ -116,7 +121,6 @@ class DashboardController
         }
 
         $logs = $stmt->fetchAll();
-
         $stats = $this->getStats();
 
         $this->render('logs', [
@@ -176,7 +180,7 @@ class DashboardController
         }
 
         return [
-            'total' => (int)$total,
+            'total' => $total,
             'actions' => $actions,
             'categories' => [
                 'task' => $taskCount,
@@ -187,119 +191,9 @@ class DashboardController
         ];
     }
 
-    private function humanize(array $data): string
-    {
-        $action = $data['action'] ?? '';
-
-        return match ($action) {
-            'TASK_CREATED' => sprintf(
-                'Tâche <strong>%s</strong> créée (priorité : %s) par <strong>%s</strong>',
-                htmlspecialchars($data['title'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['priority'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8')
-            ),
-            'TASK_UPDATED' => sprintf(
-                'Tâche <strong>%s</strong> modifiée par <strong>%s</strong>',
-                htmlspecialchars($data['title'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8')
-            ),
-            'TASK_STATUS_CHANGED' => sprintf(
-                'Tâche <strong>%s</strong> : statut <strong>%s</strong> → <strong>%s</strong> par <strong>%s</strong>',
-                htmlspecialchars($data['title'] ?? '#' . ($data['id'] ?? ''), ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['old_value'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['new_value'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8')
-            ),
-            'TASK_DELETED' => sprintf(
-                'Tâche <strong>%s</strong> supprimée par <strong>%s</strong>',
-                htmlspecialchars($data['title'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8')
-            ),
-            'TASK_LISTED' => sprintf(
-                'Liste des tâches consultée par <strong>%s</strong> (%d tâche(s))',
-                htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8'),
-                (int)($data['count'] ?? 0)
-            ),
-            'TASK_VIEWED' => sprintf(
-                'Tâche <strong>%s</strong> consultée par <strong>%s</strong>',
-                htmlspecialchars($data['title'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8')
-            ),
-            'AUTH_LOGIN_SUCCESS' => sprintf(
-                'Connexion réussie de <strong>%s</strong> (IP : %s)',
-                htmlspecialchars($data['username'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['ip'] ?? 'inconnue', ENT_QUOTES, 'UTF-8')
-            ),
-            'AUTH_LOGIN_FAILED' => sprintf(
-                'Échec de connexion pour <strong>%s</strong> (raison : %s, IP : %s)',
-                htmlspecialchars($data['username'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['reason'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['ip'] ?? 'inconnue', ENT_QUOTES, 'UTF-8')
-            ),
-            'AUTH_REGISTER_SUCCESS' => sprintf(
-                'Inscription réussie de <strong>%s</strong> (IP : %s)',
-                htmlspecialchars($data['username'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['ip'] ?? 'inconnue', ENT_QUOTES, 'UTF-8')
-            ),
-            'AUTH_REGISTER_FAILED' => sprintf(
-                'Échec d\'inscription pour <strong>%s</strong> (raison : %s, IP : %s)',
-                htmlspecialchars($data['username'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['reason'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['ip'] ?? 'inconnue', ENT_QUOTES, 'UTF-8')
-            ),
-            'AUTH_LOGOUT' => sprintf(
-                'Déconnexion de <strong>%s</strong>',
-                htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8')
-            ),
-            'SECURITY_ACCESS_DENIED' => sprintf(
-                'Accès refusé à <strong>%s</strong> (URI : %s, IP : %s)',
-                htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['uri'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($data['ip'] ?? 'inconnue', ENT_QUOTES, 'UTF-8')
-            ),
-            'SECURITY_RESOURCE_NOT_FOUND' => sprintf(
-                'Ressource introuvable : %s #%d par <strong>%s</strong>',
-                htmlspecialchars($data['type'] ?? '', ENT_QUOTES, 'UTF-8'),
-                (int)($data['id'] ?? 0),
-                htmlspecialchars($data['username'] ?? 'inconnu', ENT_QUOTES, 'UTF-8')
-            ),
-            'ERROR_DATABASE' => sprintf(
-                'Erreur base de données : %s',
-                htmlspecialchars($data['message'] ?? $data['error'] ?? '', ENT_QUOTES, 'UTF-8')
-            ),
-            'ERROR_UNHANDLED' => sprintf(
-                'Exception non gérée : %s dans %s:%d',
-                htmlspecialchars($data['message'] ?? '', ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars(basename($data['file'] ?? ''), ENT_QUOTES, 'UTF-8'),
-                (int)($data['line'] ?? 0)
-            ),
-            default => htmlspecialchars(json_encode($data), ENT_QUOTES, 'UTF-8'),
-        };
-    }
-
-    private function severityLabel(?int $priority): string
-    {
-        return self::SEVERITY_LABELS[$priority] ?? 'unknown';
-    }
-
-    private function actionLabel(string $action): string
-    {
-        return self::ACTION_LABELS[$action] ?? $action;
-    }
-
-    private function actionIcon(string $action): string
-    {
-        return self::ACTION_ICONS[$action] ?? 'circle';
-    }
-
-    private function actionCategory(string $action): string
-    {
-        return self::ACTION_CATEGORIES[$action] ?? 'task';
-    }
-
     private function render(string $template, array $data = []): void
     {
         extract($data);
-        require __DIR__ . '/../templates/layout.php';
+        require __DIR__ . '/../../templates/layout.php';
     }
 }

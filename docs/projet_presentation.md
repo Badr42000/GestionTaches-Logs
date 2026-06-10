@@ -38,14 +38,16 @@ Mon entreprise possède déjà l'application **GestionDeTâches**, une solution 
 
 ---
 
-## Objectifs du projet
+## Objectifs du projet (SMART)
 
-1. **Mettre en place une infrastructure de journalisation centralisée** via syslog (rsyslog)
-2. **Journaliser un maximum d'événements** : authentification, gestion des tâches, sécurité, erreurs
-3. **Développer un dashboard de supervision** affichant les logs avec filtres et statistiques
-4. **Assurer la traçabilité complète** des actions utilisateur
-5. **Permettre un monitoring en temps réel** de l'activité applicative
-6. **Documenter l'architecture et les choix techniques** pour maintenabilité
+| # | Objectif | Spécifique | Mesurable | Atteignable | Réaliste | Temporel |
+|:-:|----------|------------|-----------|-------------|----------|----------|
+| 1 | Infrastructure de journalisation centralisée | 4 conteneurs Docker orchestrés avec web → rsyslog → mysql ← dashboard | `docker compose up -d` fonctionnel, logs visibles dans MySQL | Utilisation de services standards (rsyslog, MySQL 8, PHP 8.2) | Oui, architecture éprouvée | Livré en phase 1 (jour 1) |
+| 2 | Journalisation des événements | 15 types d'événements (auth, CRUD tâches, sécurité, erreurs) couvrant toutes les actions utilisateur | Chaque action génère exactement 1 log JSON vérifiable dans SystemEvents | Possible via UDP socket et Logger dédié | Oui, 15 actions identifiées et codées | Livré en phase 2-4 (jours 1-2) |
+| 3 | Dashboard de supervision | Interface web dark mode avec stats, filtres (4 catégories) et logs humanisés | Temps d'affichage < 2s pour 200 logs, filtres fonctionnels | PHP natif + PDO MySQL, zéro framework | Oui, fonctionnalités définies | Livré en phase 4 (jour 2) |
+| 4 | Traçabilité complète des actions | Chaque événement enregistre : action, utilisateur, IP, timestamp, détails métier | Requête MySQL possible sur n'importe quel critère | JSON structuré dans le champ Message | Oui, schéma de log défini | Livré en phase 2-4 |
+| 5 | Monitoring de l'activité | Dashboard accessible sur http://localhost:8080 sans authentification | Rafraîchissement manuel (F5), logs visibles en < 1s après action | UDP + ommysql temps réel | Oui, latence < 10ms mesurée | Livré en phase 4 |
+| 6 | Documentation complète | README, docs/projet_presentation.md, analyse ANSSI, échanges IA | 4 documents livrés dans le dépôt Git | Rédaction documentée au fil du projet | Oui, documents créés | Livré avant soutenance |
 
 ---
 
@@ -152,43 +154,80 @@ Interface de monitoring avec :
 ### Cas d'utilisation — GestionDeTâches
 
 ```
-┌──────────────────────────────────────┐
-│           Utilisateur                │
-└──────────┬───────────────────────────┘
-           │
-    ┌──────┴──────┐
-    │  S'inscrire  │
-    │  Se connecter│
-    │  Se déconnecter│
-    │  Créer une tâche│
-    │  Modifier une tâche│
-    │  Supprimer une tâche│
-    │  Changer le statut│
-    │  Lister les tâches│
-    │  Consulter une tâche│
-    └──────────────┘
+┌─────────────────────────────────────────────┐
+│              Utilisateur                     │
+└──────┬──────────────┬──────────────┬─────────┘
+       │              │              │
+   ┌───┴───┐     ┌────┴────┐   ┌───┴────┐
+   │ UC1   │     │ UC2    │   │ UC3    │
+   │S'insc.│     │Se conn.│   │Se déco.│
+   └───────┘     └────┬───┘   └────────┘
+                      │
+            ┌─────────┼─────────┐
+            │         │         │
+       ┌────┴───┐ ┌──┴────┐ ┌──┴────┐
+       │ UC4   │ │ UC5  │ │ UC6  │
+       │Créer  │ │Modif.│ │Suppr.│
+       └───────┘ └──────┘ └──────┘
+            │         │         │
+            └────┬────┘         │
+                 │              │
+            ┌────┴────┐   ┌────┴────┐
+            │ UC7    │   │ UC8/UC9│
+            │Statut  │   │Lister/  │
+            └────────┘   │Consulter│
+                         └─────────┘
+
+     Relations :
+     UC2 ──<<include>>──> UC1   (connexion après inscription)
+     UC4 ──<<extend>>───> UC5   (modification = extension de création)
 ```
 
-| N° | Cas d'utilisation | Acteur | Description |
-|----|-------------------|--------|-------------|
-| UC1 | S'inscrire | Utilisateur | Créer un compte avec identifiant et mot de passe |
-| UC2 | Se connecter | Utilisateur | S'authentifier avec ses identifiants |
-| UC3 | Se déconnecter | Utilisateur | Mettre fin à sa session |
-| UC4 | Créer une tâche | Utilisateur | Ajouter une tâche (titre, description, priorité) |
-| UC5 | Modifier une tâche | Utilisateur | Éditer une tâche existante |
-| UC6 | Supprimer une tâche | Utilisateur | Supprimer une tâche |
-| UC7 | Changer le statut | Utilisateur | Modifier le statut (todo/in_progress/done) |
-| UC8 | Lister les tâches | Utilisateur | Voir toutes ses tâches |
-| UC9 | Consulter une tâche | Utilisateur | Voir le détail d'une tâche |
+| N° | Cas d'utilisation | Acteur | Description | Relation |
+|----|-------------------|--------|-------------|----------|
+| UC1 | S'inscrire | Utilisateur | Créer un compte avec identifiant et mot de passe | — |
+| UC2 | Se connecter | Utilisateur | S'authentifier avec ses identifiants | <<include>> UC1 |
+| UC3 | Se déconnecter | Utilisateur | Mettre fin à sa session | — |
+| UC4 | Créer une tâche | Utilisateur | Ajouter une tâche (titre, description, priorité) | — |
+| UC5 | Modifier une tâche | Utilisateur | Éditer une tâche existante | <<extend>> UC4 |
+| UC6 | Supprimer une tâche | Utilisateur | Supprimer une tâche | — |
+| UC7 | Changer le statut | Utilisateur | Modifier le statut (todo/in_progress/done) | — |
+| UC8 | Lister les tâches | Utilisateur | Voir toutes ses tâches | — |
+| UC9 | Consulter une tâche | Utilisateur | Voir le détail d'une tâche | — |
 
 ### Cas d'utilisation — Dashboard
 
-| N° | Cas d'utilisation | Acteur | Description |
-|----|-------------------|--------|-------------|
-| UC10 | Consulter les logs | Superviseur | Voir les événements journalisés |
-| UC11 | Filtrer les logs | Superviseur | Filtrer par catégorie ou type d'action |
-| UC12 | Voir les statistiques | Superviseur | Visualiser le nombre d'événements par catégorie |
-| UC13 | Consulter les tâches | Superviseur | Voir la liste des tâches avec statuts et priorités |
+```
+┌─────────────────────────────────────┐
+│          Superviseur                 │
+└──────┬──────────────┬────────────────┘
+       │              │
+   ┌───┴────┐   ┌────┴──────┐
+   │ UC10  │   │ UC13     │
+   │Logs   │   │Tâches    │
+   └───┬────┘   └──────────┘
+       │
+   ┌───┴────────┐
+   │ UC11      │
+   │Filtrer    │
+   └──────┬────┘
+          │
+   ┌──────┴──────┐
+   │ UC12       │
+   │Statistiques│
+   └────────────┘
+
+     Relations :
+     UC10 ──<<include>>──> UC11  (les logs incluent le filtre)
+     UC10 ──<<include>>──> UC12  (les logs incluent les stats)
+```
+
+| N° | Cas d'utilisation | Acteur | Description | Relation |
+|----|-------------------|--------|-------------|----------|
+| UC10 | Consulter les logs | Superviseur | Voir les événements journalisés | — |
+| UC11 | Filtrer les logs | Superviseur | Filtrer par catégorie ou type d'action | <<include>> UC10 |
+| UC12 | Voir les statistiques | Superviseur | Visualiser le nombre d'événements par catégorie | <<include>> UC10 |
+| UC13 | Consulter les tâches | Superviseur | Voir la liste des tâches avec statuts et priorités | — |
 
 ---
 

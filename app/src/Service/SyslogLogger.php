@@ -1,9 +1,16 @@
 <?php
 
-class Logger
+namespace App\Service;
+
+class SyslogLogger implements LoggerInterface
 {
     private string $host;
     private int $port;
+
+    private const PRIORITIES = [
+        'emerg' => 0, 'alert' => 1, 'crit' => 2, 'err' => 3,
+        'warning' => 4, 'notice' => 5, 'info' => 6, 'debug' => 7,
+    ];
 
     public function __construct()
     {
@@ -13,12 +20,7 @@ class Logger
 
     public function send(string $severity, string $tag, string $message): void
     {
-        $priorities = [
-            'emerg' => 0, 'alert' => 1, 'crit' => 2, 'err' => 3,
-            'warning' => 4, 'notice' => 5, 'info' => 6, 'debug' => 7,
-        ];
-
-        $priority = $priorities[$severity] ?? 6;
+        $priority = self::PRIORITIES[$severity] ?? 6;
         $facility = 1;
         $code = $facility * 8 + $priority;
 
