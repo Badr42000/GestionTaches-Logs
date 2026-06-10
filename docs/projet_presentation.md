@@ -4,7 +4,7 @@
 
 ## Contexte (analyse de l'existant)
 
-Une entreprise fictive possède déjà l'application **GestionDeTâches**, une solution PHP de gestion de tâches permettant aux utilisateurs de créer, modifier, supprimer et suivre l'état d'avancement de leurs tâches.
+Mon entreprise possède déjà l'application **GestionDeTâches**, une solution PHP de gestion de tâches permettant aux utilisateurs de créer, modifier, supprimer et suivre l'état d'avancement de leurs tâches.
 
 **État des lieux :**
 - L'application répond au besoin métier (gestion des tâches quotidiennes)
@@ -105,10 +105,9 @@ Interface de monitoring avec :
 | **rsyslog** | Version Debian Bookworm, module ommysql, UDP 514 |
 | **GitHub** | Dépôt : Badr42000/GestionTaches-Logs |
 | **Linux** | Déploiement sur environnement Linux (Debian/Ubuntu) |
-| **Délai de réalisation** | Projet scolaire — 2 semaines |
+| **Délai de réalisation** | Moins d'1 semaine |
 | **SGBD** | MySQL 8, table SystemEvents pour les logs |
 | **Réseau** | UDP pour syslog, TCP/HTTP pour les applications web |
-| **Sécurité** | Aucune authentification sur le dashboard (accès libre en interne) |
 
 ---
 
@@ -121,17 +120,6 @@ Interface de monitoring avec :
 5. **Documentation** : README.md
 6. **Document de présentation** : docs/projet_presentation.md
 7. **Dépôt Git** : historique des commits sur GitHub
-
----
-
-## Répartition des tâches (exemple pour 4 étudiants)
-
-| Étudiant | Rôle | Tâches |
-|----------|------|--------|
-| **Étudiant A** | Développeur backend | Logger.php, AuthController, TaskController, Database |
-| **Étudiant B** | Développeur dashboard | DashboardController, templates, filtres, statistiques |
-| **Étudiant C** | DevOps / Infrastructure | Docker, docker-compose, rsyslog, MySQL, déploiement |
-| **Étudiant D** | Documentation / Tests | Tests, documentation, ANSSI, plan de recette |
 
 ---
 
@@ -592,35 +580,6 @@ Utilisateur (Navigateur)
 | **Action** | GET / |
 | **Résultat attendu** | Les statistiques (total, tâches, auth, sécurité, erreurs) sont cohérentes avec les logs |
 | **Résultat obtenu** | ✅ Les sommes des catégories correspondent au total |
-
----
-
-## Analyse ANSSI — Journalisation
-
-Référentiel : [ANSSI — Guide de la journalisation (2017)](https://www.ssi.gouv.fr/guide/recommandations-de-securite-relatives-a-la-journalisation/)
-
-| N° | Recommandation ANSSI | Pris en compte | Non pris en compte | Justification |
-|----|----------------------|:--------------:|:------------------:|---------------|
-| R1 | Horodatage précis des événements | ✅ | | Les logs utilisent ReceivedAt (MySQL CURRENT_TIMESTAMP) |
-| R2 | Identification de la source (adresse IP, hostname) | ✅ | | IP enregistrée dans les logs auth/sécurité, hostname via syslog |
-| R3 | Identification de l'utilisateur | ✅ | | Nom d'utilisateur enregistré dans chaque log |
-| R4 | Type d'événement catégorisé | ✅ | | Action normalisée (AUTH_*, TASK_*, SECURITY_*, ERROR_*) |
-| R5 | Sévérité des événements | ✅ | | Niveaux syslog : info, warning, err |
-| R6 | Conservation des logs | | ✅ | Pas de politique de rotation implémentée (volumes Docker) |
-| R7 | Horloge synchronisée | | ✅ | Pas de serveur NTP dans l'infrastructure |
-| R8 | Protection de l'intégrité des logs | | ✅ | Transmission UDP (non fiable, pas de checksum applicatif) |
-| R9 | Centralisation des logs | ✅ | | rsyslog collecte tous les logs en un point unique |
-| R10 | Chiffrement des flux de logs | | ✅ | UDP en clair, pas de TLS (simple projet scolaire) |
-| R11 | Accès restreint aux logs | | ✅ | Dashboard accessible sans authentification |
-| R12 | Journalisation des accès aux logs | | ✅ | Aucune traçabilité des consultations du dashboard |
-| R13 | Format structuré | ✅ | | JSON dans le champ Message de SystemEvents |
-| R14 | Journalisation des actions d'administration | ✅ | | Toutes les actions CRUD sont tracées |
-| R15 | Journalisation des tentatives d'authentification | ✅ | | Succès et échecs de login+register enregistrés |
-| R16 | Journalisation des déconnexions | ✅ | | AUTH_LOGOUT enregistré |
-| R17 | Journalisation des accès refusés | ✅ | | SECURITY_ACCESS_DENIED enregistré |
-| R18 | Journalisation des erreurs applicatives | ✅ | | ERROR_UNHANDLED et ERROR_DATABASE enregistrés |
-| R19 | Horodatage au format ISO 8601 | | ✅ | MySQL DATETIME (format natif MySQL) |
-| R20 | Documentation du système de journalisation | ✅ | | README.md et présent document |
 
 ---
 
