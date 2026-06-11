@@ -100,16 +100,6 @@ class LogEntry extends AbstractModel
             $stmt->bindValue(1, $limit, PDO::PARAM_INT);
             $stmt->execute();
         }
-        } else {
-            $stmt = $this->pdo->prepare(
-                "SELECT * FROM SystemEvents
-                 WHERE SysLogTag = 'tasklogger:'
-                 ORDER BY ReceivedAt DESC
-                 LIMIT ?"
-            );
-            assert($stmt instanceof PDOStatement);
-            $stmt->execute([$limit]);
-        }
 
         return $stmt->fetchAll();
     }
