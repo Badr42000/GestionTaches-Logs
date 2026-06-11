@@ -64,17 +64,6 @@ docker compose ps
 #    Dashboard logs  : http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8080
 ```
 
-### Première connexion
-
-| Identifiant | Mot de passe |
-|-------------|:------------:|
-| `admin` | `admin` |
-
-1. Ouvrir http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8081
-2. Cliquer sur **Se connecter**
-3. Saisir `admin` / `admin`
-4. Vous êtes connecté — la liste des tâches s'affiche
-
 ### Arrêt
 
 ```bash
@@ -137,12 +126,6 @@ docker compose down -v
 
 ![Page d'inscription](screenshots/register.png)
 *Page d'inscription (`/register`)*
-
-![Liste des tâches](screenshots/tasks-list.png)
-*Liste des tâches — tableau avec priorités et statuts*
-
-![Formulaire de création](screenshots/task-create.png)
-*Formulaire de création d'une tâche*
 
 ![Dashboard logs](screenshots/dashboard-logs.png)
 *Dashboard — logs avec filtres et statistiques*
