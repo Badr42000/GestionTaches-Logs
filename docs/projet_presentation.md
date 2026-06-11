@@ -240,19 +240,20 @@ Projet réalisé individuellement. L'ensemble des tâches (analyse, développeme
                          └─────────┘
 
      Relations :
-     UC2 ──<<include>>──> UC1   (connexion après inscription)
-     UC4 ──<<extend>>───> UC5   (modification = extension de création)
+     UC5 ──<<include>>──> UC9   (modifier nécessite de consulter la tâche)
+     UC6 ──<<include>>──> UC9   (supprimer nécessite de consulter la tâche)
+     UC7 ──<<include>>──> UC9   (changer le statut nécessite de consulter la tâche)
 ```
 
 | N° | Cas d'utilisation | Acteur | Description | Relation |
 |----|-------------------|--------|-------------|----------|
 | UC1 | S'inscrire | Utilisateur | Créer un compte avec identifiant et mot de passe | — |
-| UC2 | Se connecter | Utilisateur | S'authentifier avec ses identifiants | <<include>> UC1 |
+| UC2 | Se connecter | Utilisateur | S'authentifier avec ses identifiants | — |
 | UC3 | Se déconnecter | Utilisateur | Mettre fin à sa session | — |
 | UC4 | Créer une tâche | Utilisateur | Ajouter une tâche (titre, description, priorité) | — |
-| UC5 | Modifier une tâche | Utilisateur | Éditer une tâche existante | <<extend>> UC4 |
-| UC6 | Supprimer une tâche | Utilisateur | Supprimer une tâche | — |
-| UC7 | Changer le statut | Utilisateur | Modifier le statut (todo/in_progress/done) | — |
+| UC5 | Modifier une tâche | Utilisateur | Éditer une tâche existante | <<include>> UC9 |
+| UC6 | Supprimer une tâche | Utilisateur | Supprimer une tâche | <<include>> UC9 |
+| UC7 | Changer le statut | Utilisateur | Modifier le statut (todo/in_progress/done) | <<include>> UC9 |
 | UC8 | Lister les tâches | Utilisateur | Voir toutes ses tâches | — |
 | UC9 | Consulter une tâche | Utilisateur | Voir le détail d'une tâche | — |
 
@@ -279,15 +280,15 @@ Projet réalisé individuellement. L'ensemble des tâches (analyse, développeme
    └────────────┘
 
      Relations :
-     UC10 ──<<include>>──> UC11  (les logs incluent le filtre)
-     UC10 ──<<include>>──> UC12  (les logs incluent les stats)
+     UC10 ──<<include>>──> UC11  (la consultation inclut le filtre)
+     UC10 ──<<include>>──> UC12  (la consultation inclut les stats)
 ```
 
 | N° | Cas d'utilisation | Acteur | Description | Relation |
 |----|-------------------|--------|-------------|----------|
 | UC10 | Consulter les logs | Superviseur | Voir les événements journalisés | — |
-| UC11 | Filtrer les logs | Superviseur | Filtrer par catégorie ou type d'action | <<include>> UC10 |
-| UC12 | Voir les statistiques | Superviseur | Visualiser le nombre d'événements par catégorie | <<include>> UC10 |
+| UC11 | Filtrer les logs | Superviseur | Filtrer par catégorie ou type d'action | <<include>> par UC10 |
+| UC12 | Voir les statistiques | Superviseur | Visualiser le nombre d'événements par catégorie | <<include>> par UC10 |
 | UC13 | Consulter les tâches | Superviseur | Voir la liste des tâches avec statuts et priorités | — |
 
 ---
@@ -325,7 +326,7 @@ Projet réalisé individuellement. L'ensemble des tâches (analyse, développeme
 |------|-------------|------|------|
 | **web** | PHP 8.2 CLI | 8081 (externe) | Application GestionDeTâches |
 | **rsyslog** | rsyslogd + ommysql | 514/UDP | Collecteur de logs centralisé |
-| **mysql** | MySQL 8 | 3306 | Stockage des données et des logs |
+| **mysql** | MySQL 8 | 3306 (interne) | Stockage des données et des logs |
 | **dashboard** | PHP 8.2 CLI | 8080 (externe) | Interface de supervision |
 
 ### Protocoles de communication
@@ -384,16 +385,18 @@ Utilisateur (Navigateur)
 
 ### Adressage réseau
 
+> **Note :** Les adresses IP ci-dessous sont attribuées dynamiquement par Docker via DHCP. Seul le nom de service (DNS interne Docker) est garanti constant.
+
 | Élément | Valeur |
 |---------|--------|
 | **Réseau Docker** | `gestiondetaches_default` (bridge) |
-| **Sous-réseau** | `172.19.0.0/16` |
-| **Plage IP** | `172.19.0.2` à `172.19.255.254` |
-| **Passerelle** | `172.19.0.1` |
-| **web** | `172.19.0.2` (ports: 8081 hôte → 8080 conteneur) |
-| **rsyslog** | `172.19.0.3` (port: 514/UDP) |
-| **mysql** | `172.19.0.4` (port: 3306/TCP) |
-| **dashboard** | `172.19.0.5` (ports: 8080 hôte → 8080 conteneur) |
+| **Sous-réseau** | Attribué dynamiquement par Docker (typiquement `172.x.0.0/16`) |
+| **Plage IP** | Attribuée dynamiquement |
+| **Passerelle** | Attribuée dynamiquement |
+| **web** | Ports: 8081 hôte → 8080 conteneur |
+| **rsyslog** | Port: 514/UDP |
+| **mysql** | Port: 3306/TCP (interne) |
+| **dashboard** | Ports: 8080 hôte → 8080 conteneur |
 
 ### Règles de pare-feu / zones de sécurité
 
@@ -406,9 +409,9 @@ Utilisateur (Navigateur)
 
 **Principes de segmentation :**
 - Les conteneurs sont isolés sur un réseau bridge Docker dédié
-- Aucun port MySQL n'est exposé sur l'hôte (sécurisé en interne)
+- Le port MySQL (3306) est exposé uniquement sur l'interface locale (127.0.0.1) pour les outils de développement
 - rsyslog n'accepte que les datagrammes UDP entrants (pas de TCP)
-- Seuls les ports HTTP (8080, 8081) sont ouverts vers l'hôte
+- Seuls les ports HTTP (8080, 8081) sont ouverts vers l'extérieur
 
 ---
 

@@ -2,8 +2,8 @@
 
 use App\Controller\AuthController;
 use App\Controller\TaskController;
-use App\Core\Database;
 use App\Service\SyslogLogger;
+use Shared\Core\Database;
 
 session_start();
 

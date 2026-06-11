@@ -1,12 +1,14 @@
 .PHONY: dev phpstan test
 
+RUN_DEV = docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm --entrypoint "" web
+
 dev:
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
 phpstan:
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm web composer install --no-interaction
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm web ./vendor/bin/phpstan analyse --configuration phpstan.neon
+	$(RUN_DEV) composer install --no-interaction
+	$(RUN_DEV) ./vendor/bin/phpstan analyse --configuration phpstan.neon
 
 test:
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm web composer install --no-interaction
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm web ./vendor/bin/phpunit
+	$(RUN_DEV) composer install --no-interaction
+	$(RUN_DEV) ./vendor/bin/phpunit
