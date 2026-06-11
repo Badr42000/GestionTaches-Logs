@@ -42,9 +42,8 @@
                 <?php foreach ($logs as $log):
                     $data = json_decode($log['Message'], true);
                     $action = $data['action'] ?? 'unknown';
-                    $severity = $this->severityLabel((int)$log['Priority']);
-                    $category = $this->actionCategory($action);
-                    $actionKey = strtolower(str_replace(['TASK_', 'AUTH_', 'SECURITY_', 'ERROR_'], '', $action));
+                    $severity = \Dashboard\Model\LogEntry::severityLabel((int)$log['Priority']);
+                    $category = \Dashboard\Model\LogEntry::actionCategory($action);
 
                     $icon = match (true) {
                         str_starts_with($action, 'TASK_') => match ($action) {
@@ -70,10 +69,10 @@
                     </div>
                     <div class="log-body">
                         <div class="log-header">
-                            <span class="log-action <?= $category ?>"><?= $this->actionLabel($action) ?></span>
+                            <span class="log-action <?= $category ?>"><?= \Dashboard\Model\LogEntry::actionLabel($action) ?></span>
                             <span class="log-time"><?= htmlspecialchars($log['ReceivedAt'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
                         </div>
-                        <div class="log-message"><?= $this->humanize($data) ?></div>
+                        <div class="log-message"><?= \Dashboard\Model\LogEntry::humanize($data) ?></div>
                         <div class="log-meta">
                             <span class="log-severity <?= $severity ?>"><?= $severity ?></span>
                             <span>ID système : <?= (int)$log['ID'] ?></span>

@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Core\BaseController;
-use App\Core\Database;
 use App\Model\Task;
 use App\Service\LoggerInterface;
+use Shared\Core\Database;
 
 class TaskController extends BaseController
 {
@@ -27,7 +27,7 @@ class TaskController extends BaseController
             'action' => 'TASK_LISTED',
             'username' => $username,
             'count' => count($tasks),
-        ]));
+        ]) ?: '{}');
 
         $this->render('list', ['tasks' => $tasks]);
     }
@@ -63,7 +63,7 @@ class TaskController extends BaseController
             'priority' => $priority,
             'status' => 'todo',
             'username' => $username,
-        ]));
+        ]) ?: '{}');
 
         header('Location: /');
         exit;
@@ -71,15 +71,13 @@ class TaskController extends BaseController
 
     public function handleEditForm(int $id): void
     {
-        $username = $_SESSION['user']['username'] ?? 'unknown';
         $task = $this->findTaskOr404($id);
 
         $this->logger->send('info', 'tasklogger', json_encode([
             'action' => 'TASK_VIEWED',
-            'id' => $id,
+            'task_id' => $id,
             'title' => $task['title'],
-            'username' => $username,
-        ]));
+        ]) ?: '{}');
 
         $this->render('form', ['task' => $task]);
     }
@@ -107,7 +105,7 @@ class TaskController extends BaseController
             'title' => $title,
             'priority' => $priority,
             'username' => $username,
-        ]));
+        ]) ?: '{}');
 
         header('Location: /');
         exit;
@@ -122,10 +120,9 @@ class TaskController extends BaseController
 
         $this->logger->send('info', 'tasklogger', json_encode([
             'action' => 'TASK_DELETED',
-            'id' => $id,
+            'task_id' => $id,
             'title' => $task['title'],
-            'username' => $username,
-        ]));
+        ]) ?: '{}');
 
         header('Location: /');
         exit;
@@ -152,12 +149,13 @@ class TaskController extends BaseController
             'old_value' => $task['status'],
             'new_value' => $newStatus,
             'username' => $username,
-        ]));
+        ]) ?: '{}');
 
         header('Location: /');
         exit;
     }
 
+    /** @return array<string, mixed> */
     private function findTaskOr404(int $id): array
     {
         $task = $this->task->findById($id);
@@ -169,7 +167,7 @@ class TaskController extends BaseController
                 'type' => 'task',
                 'id' => $id,
                 'username' => $username,
-            ]));
+            ]) ?: '{}');
             http_response_code(404);
             echo 'Tâche introuvable.';
             exit;

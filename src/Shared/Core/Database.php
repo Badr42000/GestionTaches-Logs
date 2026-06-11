@@ -1,18 +1,12 @@
 <?php
 
-namespace Dashboard\Core;
+namespace Shared\Core;
 
 use PDO;
-use PDOException;
 
 class Database
 {
     private static ?PDO $instance = null;
-
-    public static function setInstance(?PDO $pdo): void
-    {
-        self::$instance = $pdo;
-    }
 
     public static function getInstance(): PDO
     {

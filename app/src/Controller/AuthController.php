@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Core\BaseController;
-use App\Core\Database;
 use App\Model\User;
 use App\Service\LoggerInterface;
+use Shared\Core\Database;
 
 class AuthController extends BaseController
 {
@@ -37,7 +37,15 @@ class AuthController extends BaseController
 
         $userRow = $this->user->findByUsername($username);
 
-        if (!$userRow || !password_verify($password, $userRow['password'])) {
+        if (!$userRow) {
+            $this->logAuthFailure('Identifiants incorrects', $username, $ip);
+            $this->render('login', ['error' => 'Identifiants incorrects.', 'hideCreate' => true]);
+            return;
+        }
+        assert(is_string($userRow['password']));
+        assert(is_numeric($userRow['id']));
+
+        if (!password_verify($password, $userRow['password'])) {
             $this->logAuthFailure('Identifiants incorrects', $username, $ip);
             $this->render('login', ['error' => 'Identifiants incorrects.', 'hideCreate' => true]);
             return;
@@ -52,7 +60,7 @@ class AuthController extends BaseController
             'action' => 'AUTH_LOGIN_SUCCESS',
             'username' => $userRow['username'],
             'ip' => $ip,
-        ]));
+        ]) ?: '{}');
 
         header('Location: /');
         exit;
@@ -65,7 +73,7 @@ class AuthController extends BaseController
         $this->logger->send('info', 'tasklogger', json_encode([
             'action' => 'AUTH_LOGOUT',
             'username' => $username,
-        ]));
+        ]) ?: '{}');
 
         unset($_SESSION['user']);
         session_destroy();
@@ -114,7 +122,7 @@ class AuthController extends BaseController
             'action' => 'AUTH_REGISTER_SUCCESS',
             'username' => $username,
             'ip' => $ip,
-        ]));
+        ]) ?: '{}');
 
         header('Location: /');
         exit;
@@ -135,7 +143,7 @@ class AuthController extends BaseController
             'reason' => $reason,
             'username' => $username,
             'ip' => $ip,
-        ]));
+        ]) ?: '{}');
     }
 
 }
