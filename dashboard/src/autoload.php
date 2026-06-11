@@ -2,9 +2,9 @@
 
 spl_autoload_register(function (string $class): void {
     $prefixes = [
-        'Shared\\' => dirname(__DIR__, 3) . '/src/Shared',
+        'Shared\\' => dirname(__DIR__, 2) . '/src/Shared',
         'Dashboard\\' => __DIR__,
-        'App\\' => dirname(__DIR__, 3) . '/app/src',
+        'App\\' => dirname(__DIR__, 2) . '/app/src',
     ];
 
     foreach ($prefixes as $prefix => $baseDir) {
