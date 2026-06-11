@@ -60,8 +60,8 @@ docker compose up -d
 docker compose ps
 
 # 4. Ouvrir l'application
-#    GestionDeTâches : http://localhost:8081
-#    Dashboard logs  : http://localhost:8080
+#    GestionDeTâches : http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8081
+#    Dashboard logs  : http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8080
 ```
 
 ### Première connexion
@@ -70,7 +70,7 @@ docker compose ps
 |-------------|:------------:|
 | `admin` | `admin` |
 
-1. Ouvrir http://localhost:8081
+1. Ouvrir http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8081
 2. Cliquer sur **Se connecter**
 3. Saisir `admin` / `admin`
 4. Vous êtes connecté — la liste des tâches s'affiche
@@ -93,7 +93,7 @@ docker compose down -v
 ### Gestion des tâches (port 8081)
 
 #### Créer un compte
-1. Ouvrir http://localhost:8081
+1. Ouvrir http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8081
 2. Cliquer sur **S'inscrire**
 3. Saisir un nom d'utilisateur et un mot de passe (min. 4 caractères)
 4. Cliquer sur **S'inscrire** — connexion automatique
@@ -120,7 +120,7 @@ docker compose down -v
 ### Dashboard de supervision (port 8080)
 
 #### Consulter les logs
-1. Ouvrir http://localhost:8080
+1. Ouvrir http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8080
 2. Les logs s'affichent par ordre chronologique inverse
 3. Utiliser les filtres par catégorie : Tâches, Authentification, Sécurité, Erreurs
 
@@ -132,17 +132,23 @@ docker compose down -v
 
 ## Captures d'écran
 
-> *Des captures d'écran de l'application en fonctionnement seront ajoutées ici.*
-> Ouvrir http://localhost:8081 et http://localhost:8080 pour visualiser l'interface.
+![Page de connexion](screenshots/login.png)
+*Page de connexion (`/login`)*
 
-### Pages à Capturer
+![Page d'inscription](screenshots/register.png)
+*Page d'inscription (`/register`)*
 
-1. **Page de connexion** (`/login`) — formulaire d'authentification
-2. **Page d'inscription** (`/register`) — création de compte
-3. **Liste des tâches** (`/`) — tableau des tâches avec priorités et statuts
-4. **Formulaire de création** (`/create`) — ajout d'une nouvelle tâche
-5. **Dashboard logs** (`http://localhost:8080`) — logs avec filtres et statistiques
-6. **Dashboard tâches** (`http://localhost:8080/tasks`) — vue des tâches
+![Liste des tâches](screenshots/tasks-list.png)
+*Liste des tâches — tableau avec priorités et statuts*
+
+![Formulaire de création](screenshots/task-create.png)
+*Formulaire de création d'une tâche*
+
+![Dashboard logs](screenshots/dashboard-logs.png)
+*Dashboard — logs avec filtres et statistiques*
+
+![Dashboard tâches](screenshots/dashboard-tasks.png)
+*Dashboard — vue des tâches*
 
 ---
 
@@ -214,12 +220,6 @@ GestionDeTâches/
 | Rsyslog (UDP) | `514` | 514 |
 | MySQL | `3306` | 3306 |
 
-Accès IPv6 :
-```
-http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8081
-http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8080
-```
-
 ---
 
 ## Commandes utiles
@@ -245,33 +245,6 @@ docker compose up -d <service>
 
 ---
 
-## FAQ
-
-**Q : Je vois « Erreur de connexion à la base de données »**
-
-R : MySQL n'est pas encore prêt. Attendez quelques secondes que le healthcheck passe, puis rafraîchissez la page.
-
-**Q : Les logs n'apparaissent pas sur le dashboard**
-
-R : Vérifiez que rsyslog est bien démarré : `docker compose logs rsyslog`. Les logs UDP sont visibles quasi-instantanément. Si le problème persiste, redémarrez rsyslog : `docker compose restart rsyslog`.
-
-**Q : Comment réinitialiser les données ?**
-
-R : `docker compose down -v && docker compose up -d` — cela supprime le volume MySQL et recrée les tables.
-
-**Q : Puis-je accéder à l'application depuis un autre appareil ?**
-
-R : Oui, utilisez l'adresse IP de la machine hôte (ex: `http://192.168.1.42:8081`). Sous Linux, Docker bind sur toutes les interfaces par défaut.
-
-**Q : Les ports 8080/8081 sont déjà utilisés**
-
-R : Modifiez les ports dans `docker-compose.yml` (ex: `"8082:8080"` pour le dashboard, `"8083:8080"` pour web).
-
-**Q : Comment arrêter l'application proprement ?**
-
-R : `docker compose down` — les conteneurs sont stoppés et supprimés. Les données MySQL sont conservées dans un volume.
-
----
 
 ## Développement
 
@@ -294,7 +267,7 @@ Le Dashboard lit la table `SystemEvents` et affiche les logs avec :
 - Code couleur par sévérité (info, warning, erreur)
 - Design dark mode
 
-Accessible sur [http://localhost:8080](http://localhost:8080).
+Accessible sur [http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8080](http://[2a03:5840:111:1024:df:2cff:fe9a:36c]:8080).
 
 ---
 
