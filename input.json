@@ -1,0 +1,33 @@
+{
+  "_instructions": "Fichier de configuration pour l'évaluation — Badr42000 (solo)",
+  "groupe": "GX",
+  "depot_github": "https://github.com/Badr42000/GestionTaches-Logs",
+  "etudiants": [
+    {
+      "nom": "Badr42000",
+      "prenom": "",
+      "participation_pct": 100
+    }
+  ],
+  "projet": {
+    "titre": "TaskLogger — Gestion de tâches avec journalisation syslog",
+    "description": "Application de gestion de tâches avec supervision centralisée via rsyslog (UDP), dashboard PHP 8.2, infrastructure Docker 4 conteneurs"
+  },
+  "livrables": {
+    "analyse_anssi": "docs/analyse_anssi.md",
+    "procedure_installation": "README.md",
+    "documentation_utilisateur": "README.md",
+    "tests_validation": "docs/projet_presentation.md",
+    "cahier_des_charges": "docs/projet_presentation.md",
+    "planning_taches": "docs/projet_presentation.md",
+    "gestion_risques": "docs/registre_risques.md",
+    "slides_soutenance": "docs/presentation_slides.md",
+    "uml_use_case": "docs/diagrams/use_case.puml",
+    "uml_deploiement": "docs/diagrams/deployment.puml",
+    "schema_reseau": "docs/projet_presentation.md",
+    "sitemap": "docs/projet_presentation.md",
+    "mockup": "docs/projet_presentation.md",
+    "screenshots": "screenshots/",
+    "echanges_ia": "Historique conversations IA/"
+  }
+}
