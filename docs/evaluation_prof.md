@@ -71,7 +71,7 @@ La note (14,0) est plafonnée par l'absence de **preuves vérifiées** (R-P2) su
 | 4 | Tests de validation (use cases) | 0,50 | `docs/projet_presentation.md` | **R-P2** — 10 cas structurés (état initial, action, résultat attendu, résultat obtenu) couvrant tous les parcours. Mais résultats ✅ purement déclaratifs, sans artefacts (captures horodatées, logs, sorties) |
 | 17 | Critères de performances mesurés | 0,50 | `docs/projet_presentation.md` | **R-P2** — 7 exigences chiffrées (latence <10ms, dashboard <2s, 10k événements/jour…). Aucun protocole de mesure ni résultat brut fourni |
 | 20 | Traçabilité des commits par étudiant | 0,75 | Historique Git (42 commits) | 42 commits (hors merges), 1 auteur (Badr42000). Messages conventionnels (feat/fix/docs), progression par phases (infra → app → dashboard → docs). Activité sur 3 jours (9-11 juin), cohérente mais concentrée |
-| 23 | Utilisation de PHPStan | 0,75 | `phpstan.neon` + `make phpstan` → 0 erreurs | Config niveau max, couvre app/src et dashboard/src. Exécution par le correcteur : **0 erreur** ✅ |
+| 23 | Utilisation de PHPStan | 0,75 | `phpstan.neon` + `composer.json` + `Makefile` | Config niveau max, couvre app/src et dashboard/src, script dans composer.json, cible Makefile. Commit `00c4177` revendique 0 erreurs |
 | 24 | Tests unitaires | 0,75 | `tests/Unit/SyslogLoggerTest.php`, `TaskModelTest.php`, `UserModelTest.php` | 3 fichiers, tests avec mocks PDO, couvrent findAll/findById/create/update/delete/updateStatus. Config PHPUnit + bootstrap + Makefile. Couverture partielle (Model/Service, pas de Controllers) |
 
 ## Points forts
