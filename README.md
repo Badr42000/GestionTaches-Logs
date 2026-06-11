@@ -127,6 +127,9 @@ docker compose down -v
 ![Page d'inscription](screenshots/register.png)
 *Page d'inscription (`/register`)*
 
+![Page Gestion des tâches](screenshots/task-list.png)
+*Gestion des tâches — Liste des tâches*
+
 ![Dashboard logs](screenshots/dashboard-logs.png)
 *Dashboard — logs avec filtres et statistiques*
 
