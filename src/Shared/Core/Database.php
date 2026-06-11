@@ -3,6 +3,7 @@
 namespace Shared\Core;
 
 use PDO;
+use PDOException;
 
 class Database
 {

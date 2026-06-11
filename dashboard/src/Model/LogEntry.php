@@ -2,6 +2,7 @@
 
 namespace Dashboard\Model;
 
+use PDO;
 use PDOStatement;
 
 class LogEntry extends AbstractModel
@@ -55,7 +56,9 @@ class LogEntry extends AbstractModel
                  LIMIT ?"
             );
             assert($stmt instanceof PDOStatement);
-            $stmt->execute(['%"action":"' . $filter . '"%', $limit]);
+            $stmt->bindValue(1, '%"action":"' . $filter . '"%', PDO::PARAM_STR);
+            $stmt->bindValue(2, $limit, PDO::PARAM_INT);
+            $stmt->execute();
         } elseif ($category && in_array($category, ['task', 'auth', 'security', 'error'], true)) {
             $categoryActions = array_keys(
                 array_filter(self::ACTION_CATEGORIES, fn($cat) => $cat === $category)
@@ -68,7 +71,8 @@ class LogEntry extends AbstractModel
                      LIMIT ?"
                 );
                 assert($stmt instanceof PDOStatement);
-                $stmt->execute([$limit]);
+                $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+                $stmt->execute();
             } else {
                 $placeholders = implode(' OR Message LIKE ', array_fill(0, count($categoryActions), '?'));
                 $sql = "SELECT * FROM SystemEvents
@@ -77,10 +81,13 @@ class LogEntry extends AbstractModel
                         ORDER BY ReceivedAt DESC
                         LIMIT ?";
                 $params = array_map(fn($a) => '%"action":"' . $a . '"%', $categoryActions);
-                $params[] = $limit;
                 $stmt = $this->pdo->prepare($sql);
                 assert($stmt instanceof PDOStatement);
-                $stmt->execute($params);
+                foreach ($params as $i => $param) {
+                    $stmt->bindValue($i + 1, $param, PDO::PARAM_STR);
+                }
+                $stmt->bindValue(count($params) + 1, $limit, PDO::PARAM_INT);
+                $stmt->execute();
             }
         } else {
             $stmt = $this->pdo->prepare(
@@ -90,7 +97,8 @@ class LogEntry extends AbstractModel
                  LIMIT ?"
             );
             assert($stmt instanceof PDOStatement);
-            $stmt->execute([$limit]);
+            $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+            $stmt->execute();
         }
 
         return $stmt->fetchAll();
