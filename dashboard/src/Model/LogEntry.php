@@ -209,20 +209,17 @@ class LogEntry extends AbstractModel
                 htmlspecialchars((string)($data['username'] ?? 'inconnu'), ENT_QUOTES, 'UTF-8')
             ),
             'AUTH_LOGIN_SUCCESS' => sprintf(
-                'Connexion réussie de <strong>%s</strong> (IP : %s)',
-                htmlspecialchars((string)($data['username'] ?? ''), ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars((string)($data['ip'] ?? 'inconnue'), ENT_QUOTES, 'UTF-8')
+                'Connexion réussie de <strong>%s</strong>',
+                htmlspecialchars((string)($data['username'] ?? ''), ENT_QUOTES, 'UTF-8')
             ),
             'AUTH_LOGIN_FAILED' => sprintf(
-                'Échec de connexion pour <strong>%s</strong> (raison : %s, IP : %s)',
+                'Échec de connexion pour <strong>%s</strong> (raison : %s)',
                 htmlspecialchars((string)($data['username'] ?? ''), ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars((string)($data['reason'] ?? ''), ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars((string)($data['ip'] ?? 'inconnue'), ENT_QUOTES, 'UTF-8')
+                htmlspecialchars((string)($data['reason'] ?? ''), ENT_QUOTES, 'UTF-8')
             ),
             'AUTH_REGISTER_SUCCESS' => sprintf(
-                'Inscription réussie de <strong>%s</strong> (IP : %s)',
-                htmlspecialchars((string)($data['username'] ?? ''), ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars((string)($data['ip'] ?? 'inconnue'), ENT_QUOTES, 'UTF-8')
+                'Inscription réussie de <strong>%s</strong>',
+                htmlspecialchars((string)($data['username'] ?? ''), ENT_QUOTES, 'UTF-8')
             ),
             'AUTH_LOGOUT' => sprintf(
                 'Déconnexion de <strong>%s</strong>',
