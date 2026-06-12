@@ -25,7 +25,8 @@ Application de gestion de tâches avec monitoring temps réel
 
 ---
 
-## Contexte
+<!-- 1. Contexte -->
+## Contexte (analyse de l'existant)
 
 Mon entreprise possède déjà l'application **GestionDeTâches** (PHP)
 
@@ -37,6 +38,7 @@ Mon entreprise possède déjà l'application **GestionDeTâches** (PHP)
 
 ---
 
+<!-- 2. Expression du besoin -->
 ## Expression du besoin
 
 <div class="columns">
@@ -62,140 +64,121 @@ Mon entreprise possède déjà l'application **GestionDeTâches** (PHP)
 </div>
 </div>
 
----
+### Priorisation MoSCoW
 
-## Objectifs du projet
-
-1. 📡 Infrastructure de **journalisation centralisée** (rsyslog)
-2. 📝 **Tracer** authentification, tâches, sécurité, erreurs
-3. 📊 **Dashboard** de supervision avec filtres et stats
-4. 🔍 **Traçabilité complète** des actions utilisateur
-5. ⚡ **Monitoring temps réel** de l'activité
-
----
-
-## Architecture applicative
-
-### Deux applications complémentaires
-
-<div class="columns">
-<div>
-
-**GestionDeTâches** — Port 8081
-- Inscription / Connexion
-- CRUD de tâches
-- Changement de statut
-- Génération des logs
-
-</div>
-<div>
-
-**Dashboard** — Port 8080
-- Affichage des logs
-- Filtres par catégorie
-- Statistiques
-- Vue tâches
-
-</div>
-</div>
+| Priorité | Besoin |
+|:--------:|--------|
+| **Must** | Journalisation centralisée (rsyslog → MySQL) |
+| **Must** | Journaliser tous les événements (auth, CRUD, sécurité, erreurs) |
+| **Should** | Dashboard de supervision |
+| **Could** | Filtres avancés et statistiques |
+| **Won't** | Alerting temps réel (hors scope) |
 
 ---
 
+<!-- 3. Objectifs SMART -->
+## Objectifs du projet (SMART)
+
+| # | Objectif | Livré |
+|:-:|----------|:-----:|
+| **O1** | Infrastructure Docker (4 conteneurs orchestrés) | ✅ |
+| **O2** | Journalisation de 15 types d'événements | ✅ |
+| **O3** | Dashboard dark mode avec filtres et stats | ✅ |
+| **O4** | Traçabilité complète (action, user, IP, timestamp, détail métier) | ✅ |
+| **O5** | Monitoring temps réel (latence < 10 ms) | ✅ |
+| **O6** | Documentation complète (README, docs/, analyse ANSSI) | ✅ |
+
+---
+
+<!-- 4. Fonctions principales -->
 ## Fonctions principales
 
-<div class="columns">
-<div>
+### GestionDeTâches — Port 8081
 
-### GestionDeTâches (8081)
+| Fonction | Journalisation |
+|----------|:--------------:|
+| Inscription | AUTH_REGISTER_SUCCESS / FAILED |
+| Connexion / Déconnexion | AUTH_LOGIN_SUCCESS / FAILED / AUTH_LOGOUT |
+| CRUD tâches | TASK_CREATED / UPDATED / DELETED |
+| Changement statut | TASK_STATUS_CHANGED |
+| Consultation tâche | TASK_VIEWED |
+| Accès refusé / 404 | SECURITY_ACCESS_DENIED / RESOURCE_NOT_FOUND |
 
-| Fonction | Log |
-|----------|:---:|
-| Inscription | ✅ |
-| Connexion / Déconnexion | ✅ |
-| Créer une tâche | ✅ |
-| Modifier une tâche | ✅ |
-| Supprimer une tâche | ✅ |
-| Changer le statut | ✅ |
-| Consulter une tâche | ✅ |
-| Lister les tâches | ✅ |
+### Dashboard — Port 8080
 
-</div>
-<div>
-
-### Dashboard (8080)
-
-| Fonction | Détail |
-|----------|--------|
-| Affichage logs | Temps réel |
-| Filtre par catégorie | 4 catégories |
-| Filtre par action | 16 types |
-| Statistiques | Totaux par catégorie |
-| Vue tâches | Liste + statuts |
-
-</div>
-</div>
+| Fonction | Description |
+|----------|-------------|
+| Logs | Liste chronologique des événements syslog |
+| Filtres | Par catégorie (Tâches, Auth, Sécurité, Erreurs) |
+| Statistiques | Total d'événements par catégorie |
+| Vue tâches | Liste des tâches avec priorité et statut |
 
 ---
 
-## Événements journalisés
-
-| Catégorie | Événements |
-|-----------|------------|
-| 🔐 **Authentification** | Connexion (succès/échec), Inscription (succès/échec), Déconnexion |
-| 📋 **Tâches** | Création, Modification, Suppression, Changement statut, Consultation |
-| 🛡️ **Sécurité** | Accès refusé, Ressource introuvable |
-| ⚠️ **Erreurs** | Erreur BDD, Exception non gérée |
-
----
-
+<!-- 5. Critères de performance -->
 ## Critères de performance
 
-| Critère | Objectif |
-|---------|----------|
-| Envoi d'un log | < 10 ms (UDP) |
-| Affichage dashboard | < 2 secondes |
-| Volume supporté | > 10 000 évts/jour |
-| Utilisateurs simultanés | Jusqu'à 50 |
-| Disponibilité | 99 % |
+| Critère | Exigence | Mesuré | Statut |
+|---------|:--------:|:------:|:------:|
+| Temps d'envoi d'un log | < 10 ms (UDP) | **1,06 ms** | ✅ |
+| Temps d'affichage dashboard | < 2 s (200 logs) | **0,40 s** | ✅ |
+| Volume supporté | > 10 000 évts/jour | **~86 400/j** | ✅ |
+| Disponibilité services | 99 % (restart auto) | Docker restart | ✅ |
+| Utilisateurs simultanés | Jusqu'à 50 | Non testé | ⚠️ |
+
+> Protocole et résultats détaillés : `docs/mesures_performance.md`
 
 ---
 
+<!-- 6. Contraintes techniques -->
 ## Contraintes techniques
 
-| Technologie | Détail |
-|-------------|--------|
-| **PHP** | 8.2 CLI, PDO, sockets |
-| **Docker** | 4 conteneurs |
-| **rsyslog** | ommysql, UDP 514 |
-| **MySQL** | 8 — table SystemEvents |
+| Contrainte | Détail |
+|------------|--------|
+| **PHP** | 8.2 CLI, PDO, sockets, ext-pdo_mysql |
+| **Docker** | 4 conteneurs : web, dashboard, rsyslog, mysql |
+| **rsyslog** | Debian Bookworm, module ommysql, UDP 514 |
+| **MySQL** | MySQL 8, table SystemEvents |
 | **Délai** | Moins d'1 semaine |
+| **Réseau** | UDP (syslog), TCP/HTTP (applications) |
 
 ---
 
+<!-- 7. Liste des livrables -->
 ## Liste des livrables
 
-1. 🧩 **Code** — Application GestionDeTâches
-2. 🧩 **Code** — Dashboard de supervision
-3. 🐳 **Infra Docker** — docker-compose + Dockerfiles
-4. 🗄️ **Base SQL** — init.sql
-5. 📖 **Documentation** — README.md
-6. 📑 **Présentation** — docs/projet_presentation.md
-7. 🌐 **Dépôt Git** — GitHub
+1. 🧩 **Code** — Application GestionDeTâches complète
+2. 🧩 **Code** — Application Dashboard de supervision
+3. 🐳 **Infrastructure** — docker-compose.yml, Dockerfiles, rsyslog.conf
+4. 🗄️ **Base de données** — init.sql (tables, users)
+5. 📖 **Documentation** — README.md, docs/ (analyse ANSSI, tests, performance, risques, suivi)
+6. 📑 **Présentation** — docs/projet_presentation.md + presentation_slides.md
+7. 🌐 **Dépôt Git** — Historique des commits sur GitHub
 
 ---
 
+<!-- 8. Tâches par livrable / répartition -->
 ## Tâches par livrable
 
-| Livrable | Tâches |
-|----------|--------|
-| **GestionDeTâches** | Logger, AuthController, TaskController, Database |
-| **Dashboard** | DashboardController, Templates, Filtres, Stats |
-| **Infrastructure** | Docker, docker-compose, rsyslog.conf, MySQL |
-| **Documentation** | README, présentation, tests |
+| Livrable | Tâches | Effort |
+|----------|--------|:------:|
+| **Infra Docker** | docker-compose, Dockerfiles, rsyslog.conf, MySQL init | 6,5 h |
+| **GestionDeTâches** | Autoloader MVC, Database, SyslogLogger, AuthController, TaskController, templates | 8,5 h |
+| **Dashboard** | Structure, DashboardController, templates dark mode | 6 h |
+| **Réseau** | Ports, IPv6 | 1 h |
+| **Documentation** | README, présentation, analyse ANSSI, échanges IA | 6 h |
+| **Qualité** | Refacto MVC, mutualisation, PHPUnit, PHPStan, tests validation | 6,5 h |
+| **Finalisation** | Registre risques, suivi projet | 1 h |
+
+**Total : ~33 h estimées, ~26 h réalisées** sur 3 jours (09-11 juin 2026)
+
+### Répartition
+Projet **mono-auteur** — 100 % des tâches réalisées par le même développeur.
 
 ---
 
-## Matériels & logiciels
+<!-- 9. Matériels et logiciels -->
+## Matériels et logiciels
 
 <div class="columns">
 <div>
@@ -210,14 +193,16 @@ Mon entreprise possède déjà l'application **GestionDeTâches** (PHP)
 
 - 🌿 **Versioning** : Git + GitHub
 - ✏️ **Éditeur** : VS Code / PHPStorm
-- 📦 **Serveur** : PHP CLI intégré
+- 📦 **Serveur** : PHP CLI intégré (`php -S`)
 - 🔗 **Protocole** : UDP 514, HTTP 8080/8081
+- 🧪 **Test** : Tests manuels navigateur
 </div>
 </div>
 
 ---
 
-## Diagramme de cas d'utilisation
+<!-- 10. UML — Diagramme de cas d'utilisation -->
+## UML — Diagramme de cas d'utilisation
 
 ```
 ┌──────────────────────────────────────┐
@@ -234,25 +219,17 @@ Mon entreprise possède déjà l'application **GestionDeTâches** (PHP)
      └───────────┘      └──────────┘
 ```
 
----
-
-## Use cases — GestionDeTâches
+### GestionDeTâches — 9 cas d'utilisation
 
 | N° | Cas | Acteur |
 |:--:|-----|--------|
-| UC1 | S'inscrire | Utilisateur |
-| UC2 | Se connecter | Utilisateur |
-| UC3 | Se déconnecter | Utilisateur |
-| UC4 | Créer une tâche | Utilisateur |
-| UC5 | Modifier une tâche | Utilisateur |
-| UC6 | Supprimer une tâche | Utilisateur |
-| UC7 | Changer le statut | Utilisateur |
-| UC8 | Lister les tâches | Utilisateur |
-| UC9 | Consulter une tâche | Utilisateur |
+| UC1-UC3 | S'inscrire, se connecter, se déconnecter | Utilisateur |
+| UC4-UC7 | CRUD tâches + changement statut | Utilisateur |
+| UC8-UC9 | Lister, consulter une tâche | Utilisateur |
 
----
+*UC5/UC6/UC7 incluent UC9 (consultation préalable)*
 
-## Use cases — Dashboard
+### Dashboard — 4 cas d'utilisation
 
 | N° | Cas | Acteur |
 |:--:|-----|--------|
@@ -261,9 +238,12 @@ Mon entreprise possède déjà l'application **GestionDeTâches** (PHP)
 | UC12 | Voir les statistiques | Superviseur |
 | UC13 | Consulter les tâches | Superviseur |
 
+> Diagramme UML complet : `docs/diagrams/use_case.puml`
+
 ---
 
-## Diagramme de déploiement
+<!-- 11. UML — Diagramme de déploiement -->
+## UML — Diagramme de déploiement
 
 ```
 ┌───────────────────────────────────────────┐
@@ -282,8 +262,20 @@ Mon entreprise possède déjà l'application **GestionDeTâches** (PHP)
 └───────────────────────────────────────────┘
 ```
 
+### Détail des nœuds
+
+| Nœud | Technologie | Port | Rôle |
+|------|-------------|:----:|------|
+| **web** | PHP 8.2 CLI | 8081 | Application GestionDeTâches |
+| **rsyslog** | rsyslogd + ommysql | 514/UDP | Collecteur de logs |
+| **mysql** | MySQL 8 | 3306 | Stockage données + logs |
+| **dashboard** | PHP 8.2 CLI | 8080 | Interface de supervision |
+
+> Diagramme UML : `docs/diagrams/deployment.puml`
+
 ---
 
+<!-- 12. Schéma réseau / synoptique -->
 ## Schéma synoptique
 
 ```
@@ -302,98 +294,61 @@ Utilisateur ──HTTP 8081──► GestionDeTâches
 Superviseur ──HTTP 8080──► Dashboard
 ```
 
-**Échanges :**
-1. Action utilisateur → GestionDeTâches
-2. Envoi syslog UDP → rsyslog
-3. Insertion MySQL via ommysql
-4. Dashboard interroge MySQL
-5. Affichage des logs
+### Flux réseau
+
+| Étape | De | Vers | Protocole |
+|:-----:|----|------|:---------:|
+| 1 | Utilisateur | GestionDeTâches | HTTP 8081 |
+| 2 | GestionDeTâches | rsyslog | UDP 514 |
+| 3 | rsyslog | MySQL | TCP 3306 |
+| 4 | Dashboard | MySQL | TCP 3306 (PDO) |
+| 5 | Superviseur | Dashboard | HTTP 8080 |
+
+**Réseau :** bridge Docker dédié (`gestiondetaches_default`), pas d'exposition MySQL à l'extérieur.
 
 ---
 
-## Sitemap — GestionDeTâches
+<!-- 13. Sitemap -->
+## Sitemap
+
+### GestionDeTâches (:8081)
+
+| Route | Méthode | Accès |
+|-------|:-------:|:-----:|
+| `/login` | GET / POST | 🔓 Public |
+| `/register` | GET / POST | 🔓 Public |
+| `/logout` | GET | 🔒 Auth |
+| `/` | GET | 🔒 Auth |
+| `/create` | GET / POST | 🔒 Auth |
+| `/edit/{id}` | GET / POST | 🔒 Auth |
+| `/delete/{id}` | POST | 🔒 Auth |
+| `/status/{id}` | POST | 🔒 Auth |
+
+### Dashboard (:8080) — 🔓 Accès libre
 
 | Route | Page |
 |-------|------|
-| `/login` | Connexion |
-| `/register` | Inscription |
-| `/logout` | Déconnexion |
-| `/` | Liste des tâches |
-| `/create` | Création de tâche |
-| `/edit/{id}` | Modification |
-| `/delete/{id}` | Suppression |
-| `/status/{id}` | Changement statut |
+| `/` | Logs + stats + filtres |
+| `/?category={cat}` | Logs filtrés |
+| `/tasks` | Liste des tâches |
 
 ---
 
-## Sitemap — Dashboard
+<!-- 14. Mockups -->
+## Mockups
 
-| Route | Page |
-|-------|------|
-| `/` | Logs + filtres + stats |
-| `/?category=task` | Logs tâches |
-| `/?category=auth` | Logs authentification |
-| `/?category=security` | Logs sécurité |
-| `/?category=error` | Logs erreurs |
-| `/tasks` | Vue tâches |
-
----
-
-## Mockup — Connexion
-
-```
-┌────────────────────────────────┐
-│        Gestion de Tâches       │
-│                                │
-│   ┌────────────────────────┐   │
-│   │       Connexion        │   │
-│   │                        │   │
-│   │  Identifiant [    ]    │   │
-│   │  Mot de passe [    ]   │   │
-│   │                        │   │
-│   │  [ Se connecter ]      │   │
-│   │                        │   │
-│   │  Pas de compte ?       │   │
-│   │  S'inscrire            │   │
-│   └────────────────────────┘   │
-└────────────────────────────────┘
-```
-
----
-
-## Mockup — Liste des tâches
-
-```
-┌────────────────────────────────┐
-│  Gestion de Tâches    admin  🚪│
-│                                │
-│  [📝 Nouvelle tâche]           │
-│                                │
-│  Titre     │ Priorité │ Statut │
-│ ───────────┼──────────┼─────── │
-│  Rapport   │ 🔴 haute │ ◌ todo │
-│  Réunion   │ 🟡 moy.  │ ▶ en c.│
-│  Rangement │ ⚪ basse  │ ✅ done│
-└────────────────────────────────┘
-```
-
----
-
-## Mockup — Dashboard logs
+### Dashboard — Logs
 
 ```
 ┌──────────────────────────────────────┐
 │  Dashboard des logs                  │
 │                                      │
 │ [Logs] [Tâches]                      │
-│                                      │
 │ ┌─────┬─────┬──────┬──────┬──────┐   │
 │ │TOTAL│Tâche│ Auth │Sécu.│Erreur│   │
 │ │ 42  │ 24  │  12  │  4  │  2   │   │
 │ └─────┴─────┴──────┴──────┴──────┘   │
-│                                      │
 │ [Tous] [Tâches] [Auth] [Sécu] [Err]  │
-│                                      │
 │ ┌──────────────────────────────┐     │
 │ │ [+] Création    12:30        │     │
 │ │ Tâche "Rapport" créée        │     │
@@ -401,43 +356,78 @@ Superviseur ──HTTP 8080──► Dashboard
 │ ├──────────────────────────────┤     │
 │ │ [✓] Connexion   12:28       │     │
 │ │ Connexion réussie de admin  │     │
-│ │ IP: 172.19.0.1 • info       │     │
 │ └──────────────────────────────┘     │
 └──────────────────────────────────────┘
 ```
 
----
+### GestionDeTâches — Connexion & Liste
 
-## Plan de recette
+```
+┌──────────────────────┐   ┌──────────────────────┐
+│    Connexion         │   │ Liste des tâches     │
+│                      │   │ [Nouvelle tâche]     │
+│ Identifiant [    ]   │   │ Titre    │ Priorité  │
+│ Mot passe  [    ]   │   │ Rapport  │ [haute]   │
+│ [Se connecter]      │   │ Réunion  │ [moyenne] │
+│ S'inscrire          │   │ Rangement│ [basse]   │
+└──────────────────────┘   └──────────────────────┘
+```
 
-| N° | Test | Résultat attendu |
-|:--:|------|------------------|
-| 1 | Connexion réussie | Log AUTH_LOGIN_SUCCESS |
-| 2 | Connexion échouée | Log AUTH_LOGIN_FAILED |
-| 3 | Inscription réussie | Log AUTH_REGISTER_SUCCESS |
-| 4 | Inscription doublon | Log AUTH_REGISTER_FAILED |
-| 5 | Création de tâche | Log TASK_CREATED |
-| 6 | Changement statut | Log TASK_STATUS_CHANGED |
-| 7 | Accès refusé | Log SECURITY_ACCESS_DENIED |
-| 8 | Ressource introuvable | Log SECURITY_RESOURCE_NOT_FOUND |
-| 9 | Dashboard logs | Logs visibles toutes catégories |
-| 10 | Filtre catégorie | Filtre fonctionnel |
+> 6 mockups détaillés : `docs/mockups/mockups.md`
 
 ---
 
+<!-- Recette — Tests de validation -->
+## Tests de validation
+
+| N° | Test | Cas d'utilisation | Résultat |
+|:--:|------|:-----------------:|:--------:|
+| 1 | Connexion réussie | UC2 | ✅ |
+| 2 | Connexion échouée | UC2 | ✅ |
+| 3 | Inscription réussie | UC1 | ✅ |
+| 4 | Inscription doublon | UC1 | ✅ |
+| 5 | Création de tâche | UC4 | ✅ |
+| 6 | Changement statut | UC7 | ✅ |
+| 7 | Accès refusé sans session | UC2 (alt) | ✅ |
+| 8 | Ressource introuvable | — | ✅ |
+| 9 | Dashboard : logs visibles | UC10 | ✅ |
+| 10 | Filtre par catégorie | UC11 | ✅ |
+
+> Résultats détaillés avec preuves : `docs/validations/recette_resultats.md`
+
+---
+
+<!-- Démonstration -->
 ## Démonstration
 
 ### Procédure
 
 1. 🐳 `docker compose up -d`
 2. 🌐 **http://localhost:8081** — Actions utilisateur
-3. 📊 **http://localhost:8080** — Dashboard logs
+3. 📊 **http://localhost:8080** — Dashboard supervision
 
 ### Vérifications
-- ✅ Logs visibles quasi instantanément
+- ✅ Logs visibles quasi instantanément (UDP + ommysql)
+- ✅ Chaque action utilisateur génère exactement 1 log
 - ✅ Filtres par catégorie fonctionnels
 - ✅ Statistiques cohérentes
-- ✅ Chaque action = 1 log
+- ✅ Les échecs sont tracés avec la raison
+- ✅ Adresses IP enregistrées (auth, sécurité)
+
+---
+
+<!-- Bilan évaluation -->
+## Bilan — Évaluation CPI-2026
+
+| Partie | Note | Ratio |
+|:------:|:----:|:-----:|
+| **A** — Gestion de projet (/6) | 4,50 / 6 | 75 % |
+| **B** — Cahier des charges (/5) | 4,26 / 5 | 85 % |
+| **C** — Développement (/4) | 3,00 / 4 | 75 % |
+| **D** — Soutenance (/5) | — | À venir |
+| **Total** | **15,5 / 20** | |
+
+> Détail complet : `docs/evaluation_prof.md`
 
 ---
 
