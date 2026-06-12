@@ -30,5 +30,12 @@ Chaque risque est évalué selon :
 
 | Date | Événement |
 |------|-----------|
-| 2026-06-11 | Création du registre — 10 risques identifiés |
+| 2026-06-09 | **Phase 1** : R08 (CSRF) et R09 (validation mots de passe) identifiés comme risques acceptés par rapport au périmètre MVP |
+| 2026-06-09 | **R06 (SPOF MySQL)** : mitigé via l'ajout de healthcheck MySQL dans docker-compose.yml pour garantir le redémarrage automatique |
+| 2026-06-10 | **Phase 2** : R03 (croissance SystemEvents) — ajout d'une réflexion sur une future purge automatique, documentée dans l'analyse ANSSI |
+| 2026-06-10 | **R01 (perte logs UDP)** : mitigé partiellement — passage à un mode non-bloquant, les logs UDP sont prioritaires sur la fiabilité |
+| 2026-06-10 | **R02 (chiffrement)** : risque accepté — environnement Docker bridge dédié, réseau non routé |
+| 2026-06-11 | **Phase 3** : Création du registre formel — 10 risques identifiés et documentés avec mitigation |
+| 2026-06-11 | **R04 (RGPD)** : mitigation documentée — anonymisation IP et durée de rétention planifiées |
+| 2026-06-11 | **R10 (rôles)** : identifié mais hors scope pour la version initiale |
 

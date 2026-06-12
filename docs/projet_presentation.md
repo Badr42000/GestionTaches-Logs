@@ -31,10 +31,24 @@ Mon entreprise possède déjà l'application **GestionDeTâches**, une solution 
 4. **Métriques** : Disposer de statistiques d'utilisation (nombre de tâches créées, modifiées, supprimées).
 5. **Conformité** : Respecter les bonnes pratiques de journalisation (recommandations ANSSI).
 
-**Besoin exprimé :**
-- Mettre en place un système de journalisation centralisé
-- Créer un dashboard de supervision
-- Journaliser TOUS les événements pertinents (auth, CRUD, sécurité, erreurs)
+### Priorisation MoSCoW
+
+| Priorité | Besoin | Justification |
+|:--------:|--------|---------------|
+| **Must have** | Mettre en place un système de journalisation centralisé (rsyslog → MySQL) | Cœur du projet, sans lui aucun log n'est collecté |
+| **Must have** | Journaliser TOUS les événements pertinents (auth, CRUD, sécurité, erreurs) | Objectif principal du système de logging |
+| **Should have** | Créer un dashboard de supervision des logs | Permet la visualisation mais n'empêche pas la collecte |
+| **Could have** | Filtres avancés et statistiques sur le dashboard | Amélioration de l'expérience, pas bloquant |
+| **Won't have** | Alerting temps réel (email, webhook) | Hors scope pour cette version |
+
+### Traçabilité besoins → objectifs
+
+| Besoin | Objectif(s) SMART correspondant |
+|--------|--------------------------------|
+| Journalisation centralisée | O1 (infrastructure Docker), O2 (15 types d'événements), O4 (traçabilité complète) |
+| Dashboard de supervision | O3 (dashboard dark mode), O5 (monitoring activité) |
+| Journaliser tous les événements | O2 (journalisation), O4 (traçabilité) |
+| Documentation | O6 (documentation complète) |
 
 ---
 
@@ -86,15 +100,17 @@ Interface de monitoring avec :
 
 ## Critères de performance
 
-| Critère | Exigence |
-|---------|----------|
-| Temps d'envoi d'un log | < 10 ms (UDP local) |
-| Temps d'affichage du dashboard | < 2 secondes pour 200 logs |
-| Volume de logs supporté | > 10 000 événements par jour |
-| Disponibilité des services | 99 % (redémarrage Docker automatique) |
-| Temps d'arrêt maximum | < 5 minutes (conteneurs stateless) |
-| Nombre d'utilisateurs simultanés | Jusqu'à 50 sur GestionDeTâches |
-| Rafraîchissement dashboard | Manuel (rechargement navigateur) |
+| Critère | Exigence | Mesuré | Statut |
+|---------|:--------:|:------:|:------:|
+| Temps d'envoi d'un log | < 10 ms (UDP local) | **1,06 ms** | ✅ |
+| Temps d'affichage du dashboard | < 2 s pour 200 logs | **0,40 s** | ✅ |
+| Volume de logs supporté | > 10 000 événements/jour | **~86 400/j** | ✅ |
+| Disponibilité des services | 99 % (redémarrage automatique) | ✅ Docker restart | ✅ |
+| Temps d'arrêt maximum | < 5 minutes | ✅ Conteneurs stateless | ✅ |
+| Nombre d'utilisateurs simultanés | Jusqu'à 50 | Non testé formellement | ⚠️ |
+| Rafraîchissement dashboard | Manuel (rechargement navigateur) | ✅ | ✅ |
+
+> **Protocole et résultats détaillés** : `docs/mesures_performance.md`
 
 ---
 
@@ -127,34 +143,40 @@ Interface de monitoring avec :
 
 ## Tâches détaillées par livrable
 
-| Livrable | Tâche | Effort estimé | Livré en |
-|----------|-------|:-------------:|:--------:|
-| **Infrastructure Docker** | Créer docker-compose.yml (web, rsyslog, mysql) | 2h | Phase 1 |
-| | Configurer rsyslog (imudp, ommysql, rsyslog.conf) | 1h | Phase 1 |
-| | Créer Dockerfiles (web, rsyslog, dashboard) | 2h | Phase 1-4 |
-| | Configurer MySQL (init.sql, tables, users) | 1h | Phase 1 |
-| | Résoudre dbconfig-common non-interactif | 0.5h | Phase 1 |
-| **Application GestionDeTâches** | Créer autoloader PSR-4 et structure MVC | 1h | Phase 2 |
-| | Implémenter Database (singleton PDO) | 0.5h | Phase 2 |
-| | Implémenter SyslogLogger (UDP socket) | 1h | Phase 2 |
-| | Implémenter AuthController (login/register/logout) | 2h | Phase 2 |
-| | Implémenter TaskController (CRUD + statut) | 2h | Phase 2 |
-| | Créer templates (layout, login, register, list, form) | 2h | Phase 2 |
-| **Dashboard** | Créer structure Dashboard (autoloader, Database) | 0.5h | Phase 4 |
-| | Implémenter DashboardController (logs, filtres, stats) | 3h | Phase 4 |
-| | Créer templates dashboard (dark mode) | 2h | Phase 4 |
-| **Réseau & Ports** | Déplacer web 8080 → 8081 pour libérer le port | 0.5h | Phase 3 |
-| | Configurer accès IPv6 | 0.5h | Phase 3 |
-| **Documentation** | Rédiger README.md | 1h | Phase 2-4 |
-| | Rédiger docs/projet_presentation.md | 2h | Phase 4 |
-| | Rédiger analyse ANSSI (15 recommandations) | 2h | Phase 4 |
-| | Créer diaporama Marp (presentation_slides.md) | 2h | Phase 4 |
-| | Documenter échanges IA (Historique conversations IA/) | 1h | Continu |
-| **Tests & Qualité** | Écrire tests unitaires (PHPUnit, mocks PDO) | 2h | Phase 4 |
-| | Configurer PHPStan (niveau max) | 0.5h | Phase 4 |
-| | Tests de validation manuels (10 cas) | 1h | Phase 4 |
+> **Suivi de projet** : `docs/suivi_projet.md` (indicateurs prévu/réalisé, jalons, analyse d'écarts)
 
-**Temps total estimé : ~30 heures** (projet mono-auteur, réalisé sur 1 semaine).
+| Livrable | Tâche | Effort estimé | Livré le |
+|----------|-------|:-------------:|:--------:|
+| **Infrastructure Docker** | Créer docker-compose.yml (web, rsyslog, mysql) | 2h | 09 juin |
+| | Configurer rsyslog (imudp, ommysql, rsyslog.conf) | 1h | 09 juin |
+| | Créer Dockerfiles (web, rsyslog, dashboard) | 2h | 09 juin |
+| | Configurer MySQL (init.sql, tables, users) | 1h | 09 juin |
+| | Résoudre dbconfig-common non-interactif | 0.5h | 09 juin |
+| **Application GestionDeTâches** | Créer autoloader PSR-4 et structure MVC | 1h | 09 juin |
+| | Implémenter Database (singleton PDO) | 0.5h | 09 juin |
+| | Implémenter SyslogLogger (UDP socket) | 1h | 09 juin |
+| | Implémenter AuthController (login/register/logout) | 2h | 09 juin |
+| | Implémenter TaskController (CRUD + statut) | 2h | 09 juin |
+| | Créer templates (layout, login, register, list, form) | 2h | 09 juin |
+| **Dashboard** | Créer structure Dashboard (autoloader, Database) | 1h | 09-10 juin |
+| | Implémenter DashboardController (logs, filtres, stats) | 3h | 10 juin |
+| | Créer templates dashboard (dark mode) | 2h | 10 juin |
+| **Réseau & Ports** | Déplacer web 8080 → 8081 pour libérer le port | 0.5h | 09 juin |
+| | Configurer accès IPv6 | 0.5h | 09 juin |
+| **Documentation** | Rédiger README.md | 1h | 09-11 juin |
+| | Rédiger docs/projet_presentation.md | 2h | 10 juin |
+| | Rédiger analyse ANSSI (15 recommandations) | 2h | 10 juin |
+| | Créer diaporama Marp (presentation_slides.md) | 2h | 10 juin |
+| | Documenter échanges IA (Historique conversations IA/) | 1h | 09-11 juin |
+| **Qualité & Refacto** | Refacto MVC + extraction BaseController | 2h | 10 juin |
+| | Mutualisation Database (namespace Shared) | 1h | 10 juin |
+| | Écrire tests unitaires (PHPUnit, mocks PDO) | 2h | 10 juin |
+| | Configurer PHPStan (niveau max) | 0.5h | 10 juin |
+| | Tests de validation manuels (10 cas) | 1h | 11 juin |
+| **Finalisation** | Registre des risques | 0.5h | 11 juin |
+| | Suivi de projet et indicateurs | 0.5h | 11 juin |
+
+**Temps total estimé : ~33 heures** (projet mono-auteur, réalisé sur 3 jours : 9-11 juin 2026).
 
 ### Dépendances entre tâches
 
@@ -165,21 +187,21 @@ Interface de monitoring avec :
 | Implémenter AuthController | Database, SyslogLogger, Templates | Dépend du socle technique (BDD, logs, vues) |
 | Implémenter TaskController | Database, SyslogLogger, Templates | Dépend du socle technique |
 | DashboardController | Database | Lecture seule de MySQL, indépendant du logger |
+| Refacto MVC + mutualisation | Application GestionDeTâches + Dashboard | Réorganisation après implémentation initiale |
 | Tests unitaires | Modèles (Task, User) | Tests écrits après l'implémentation des modèles |
 | Tests de validation | Toute l'application | Tests manuels après finalisation des fonctionnalités |
 
-### Échéancier
+### Échéancier réel
 
-| Phase | Jours | Livrables |
-|:-----:|:-----:|-----------|
-| **Phase 1** | Jour 1 (4h) | docker-compose.yml, Dockerfiles, rsyslog.conf, init.sql |
-| **Phase 2** | Jours 1-2 (8h) | App GestionDeTâches complète (MVC, auth, CRUD, templates) |
-| **Phase 3** | Jour 2 (1h) | Ports, IPv6, réseau |
-| **Phase 4** | Jours 2-5 (17h) | Dashboard, documentation, analyse ANSSI, tests, PHPStan |
+| Phase | Date | Livrables | Commits |
+|:-----:|:----:|-----------|:-------:|
+| **Jour 1** | 09 juin 2026 | docker-compose.yml, Dockerfiles, rsyslog.conf, init.sql, App GestionDeTâches (MVC, auth, CRUD), Dashboard v1, réseau/ports IPv6 | 15 |
+| **Jour 2** | 10 juin 2026 | Dashboard finalisé, refacto MVC + BaseController, mutualisation Database Shared, PHPStan max, tests unitaires, analyse ANSSI, diaporama Marp, docs projet | 20 |
+| **Jour 3** | 11 juin 2026 | Finalisation docs, registre risques, suivi projet, échanges IA complétés, mise à jour README, captures d'écran | 12 |
 
 ### Répartition (projet mono-auteur)
 
-Projet réalisé individuellement. L'ensemble des tâches (analyse, développement, documentation, tests) a été effectué par le même développeur. La charge totale (~30h) est répartie sur 5 jours ouvrés, soit une moyenne de 6h/jour.
+Projet réalisé individuellement. L'ensemble des tâches (analyse, développement, documentation, tests) a été effectué par le même développeur. La charge totale (~26h réalisées) est répartie sur 3 jours avec une moyenne de 8-9h/jour.
 
 ---
 
@@ -479,6 +501,8 @@ Dashboard (port 8080) — 🔓 Accès libre (supervision)
 
 ## Mockup
 
+> **Mockups détaillés** : `docs/mockups/mockups.md` (6 écrans, notes de conception, palette, icônes)
+
 ### GestionDeTâches — Connexion
 
 ```
@@ -723,6 +747,8 @@ Dashboard (port 8080) — 🔓 Accès libre (supervision)
 
 ## Tests de validation
 
+> **Résultats détaillés avec preuves** : `docs/validations/recette_resultats.md` (logs MySQL bruts, captures d'écran, extraits SQL)
+
 ### Test 1 : Connexion réussie
 
 | Élément | Valeur |
@@ -731,6 +757,7 @@ Dashboard (port 8080) — 🔓 Accès libre (supervision)
 | **Action** | POST /login avec username=admin, password=admin |
 | **Résultat attendu** | Redirection vers /, session créée, log avec action AUTH_LOGIN_SUCCESS |
 | **Résultat obtenu** | ✅ Redirection effectuée, log visible dans le dashboard |
+| **Preuve** | `screenshots/login.png` — extrait MySQL : `{"action":"AUTH_LOGIN_SUCCESS","username":"admin"}` |
 
 ### Test 2 : Connexion échouée
 
@@ -740,6 +767,7 @@ Dashboard (port 8080) — 🔓 Accès libre (supervision)
 | **Action** | POST /login avec username=admin, password=mauvais |
 | **Résultat attendu** | Affichage du message "Identifiants incorrects", log AUTH_LOGIN_FAILED |
 | **Résultat obtenu** | ✅ Message affiché, log avec raison "Identifiants incorrects" |
+| **Preuve** | Log MySQL : `AUTH_LOGIN_FAILED` avec raison |
 
 ### Test 3 : Inscription réussie
 
@@ -749,6 +777,7 @@ Dashboard (port 8080) — 🔓 Accès libre (supervision)
 | **Action** | POST /register avec username=test, password=test1234 |
 | **Résultat attendu** | Compte créé, session ouverte, log AUTH_REGISTER_SUCCESS |
 | **Résultat obtenu** | ✅ Compte créé, log visible dans le dashboard |
+| **Preuve** | `screenshots/register.png` — log `AUTH_REGISTER_SUCCESS` |
 
 ### Test 4 : Inscription avec utilisateur existant
 
@@ -758,6 +787,7 @@ Dashboard (port 8080) — 🔓 Accès libre (supervision)
 | **Action** | POST /register avec username=admin, password=test1234 |
 | **Résultat attendu** | Message "Ce nom d'utilisateur existe déjà", log AUTH_REGISTER_FAILED |
 | **Résultat obtenu** | ✅ Message affiché, log avec raison "Utilisateur existant" |
+| **Preuve** | Log MySQL : `AUTH_REGISTER_FAILED` avec raison |
 
 ### Test 5 : Création de tâche
 
@@ -767,6 +797,7 @@ Dashboard (port 8080) — 🔓 Accès libre (supervision)
 | **Action** | POST /create avec title="Test tâche", priority=haute |
 | **Résultat attendu** | Tâche créée, redirection vers /, log TASK_CREATED |
 | **Résultat obtenu** | ✅ Tâche visible dans la liste, log avec titre et priorité |
+| **Preuve** | `screenshots/task-list.png` — log `TASK_CREATED` |
 
 ### Test 6 : Changement de statut
 
@@ -785,6 +816,7 @@ Dashboard (port 8080) — 🔓 Accès libre (supervision)
 | **Action** | GET /create (page protégée) |
 | **Résultat attendu** | Redirection vers /login, log SECURITY_ACCESS_DENIED |
 | **Résultat obtenu** | ✅ Redirection effectuée, log avec URI demandée |
+| **Preuve** | Sortie brute : `GET /create -> 302 /login` |
 
 ### Test 8 : Consultation de tâche
 
@@ -803,6 +835,7 @@ Dashboard (port 8080) — 🔓 Accès libre (supervision)
 | **Action** | GET /?category=auth |
 | **Résultat attendu** | Seuls les événements AUTH_* affichés |
 | **Résultat obtenu** | ✅ Filtre fonctionnel, seuls les logs auth visibles |
+| **Preuve** | `screenshots/dashboard-logs.png` — dashboard avec filtre |
 
 ### Test 10 : Statistiques du dashboard
 
@@ -812,6 +845,7 @@ Dashboard (port 8080) — 🔓 Accès libre (supervision)
 | **Action** | GET / |
 | **Résultat attendu** | Les statistiques (total, tâches, auth, sécurité, erreurs) sont cohérentes avec les logs |
 | **Résultat obtenu** | ✅ Les sommes des catégories correspondent au total |
+| **Preuve** | Requête SQL : `SELECT Category, COUNT(*) FROM SystemEvents GROUP BY Category` — cohérence vérifiée |
 
 ---
 
